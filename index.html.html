@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Mango Order Booking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg-top:#fff7d6;
+      --bg-bottom:#e2f8da;
+      --card:#ffffff;
+      --text:#123027;
+      --muted:#6d7a7a;
+      --accent:#ff9b21;
+      --accent-dark:#d67400;
+      --accent-soft:#ffe0a8;
+      --input-bg:#f5f8fa;
+      --border:#dde4ec;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font:16px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, #ffe6aa 0, transparent 65%),
+        radial-gradient(circle at 90% 100%, #c2f1b5 0, transparent 60%),
+        linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+    }
+    .wrap{
+      max-width:1100px;
+      margin:24px auto 40px;
+      padding:12px;
+      position:relative;
+      z-index:2;
+    }
+
+    .decor{display:none;}
+
+    .card{
+      position:relative;
+      z-index:2;
+      background:var(--card);
+      border-radius:26px;
+      border:1px solid rgba(0,0,0,.04);
+      box-shadow:0 18px 40px rgba(0,0,0,.18);
+      overflow:hidden;
+      width:100%;
+    }
+
+    /* -------- HEADER WITH HERO IMAGE ---------- */
+    header{
+      padding:22px 26px 16px;
+      background:linear-gradient(135deg,#ffe6b5,#ffe0a0,#ffb347);
+      border-bottom:1px solid rgba(0,0,0,.06);
+      display:flex;
+      gap:18px;
+      align-items:center;
+    }
+
+    .header-left{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      flex:1;
+      min-width:0;
+    }
+
+    header .emoji{
+      font-size:34px;
+      flex-shrink:0;
+    }
+
+    .header-text{
+      flex:1;
+      min-width:0;
+    }
+
+    .header-text h1{
+      margin:0 0 4px;
+      font-size:26px;
+      color:#3b1f00;
+    }
+
+    .header-text p{
+      margin:0;
+      color:#5c3b11;
+      font-size:14px;
+      max-width:420px;
+    }
+
+    .header-right{
+      margin-left:auto;
+      text-align:right;
+      font-size:12px;
+      color:#5c3b11;
+    }
+    .header-right span{display:block;}
+
+    .header-hero{
+      flex-shrink:0;
+    }
+    .header-hero img{
+      display:block;
+      max-width:260px;
+      border-radius:22px;
+      box-shadow:0 10px 24px rgba(0,0,0,.28);
+    }
+
+    main{
+      padding:18px 26px 24px;
+      background:#fff;
+    }
+
+    .section{margin-top:18px}
+    .section h3{
+      margin:0 0 8px;
+      font-size:18px;
+      color:#18412b;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px 16px;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:12px 16px;
+    }
+
+    label{
+      font-weight:600;
+      font-size:13px;
+      margin:8px 0 6px;
+      display:block;
+      color:#1c4330;
+    }
+
+    input:not([type="radio"]):not([type="checkbox"]),
+    select,
+    textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--input-bg);
+      color:var(--text);
+      outline:none;
+      font-size:14px;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+    input:not([type="radio"]):not([type="checkbox"]):focus,
+    select:focus,
+    textarea:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 2px rgba(255,155,33,.35);
+      background:#ffffff;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"]{
+      width:auto;
+      padding:0;
+      margin:0;
+      border:none;
+      background:transparent;
+      box-shadow:none;
+      accent-color:#ff9b21;
+      transform:scale(1.05);
+    }
+    input[type="radio"]:focus,
+    input[type="checkbox"]:focus{
+      outline:2px solid rgba(255,155,33,.6);
+      outline-offset:2px;
+      box-shadow:none;
+    }
+
+    small.hint{
+      color:var(--muted);
+      display:block;
+      margin-top:4px;
+      font-size:11px;
+    }
+    .mini{font-size:12px;color:var(--muted)}
+
+    .actions{
+      display:flex;
+      gap:12px;
+      margin-top:16px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    button{
+      cursor:pointer;
+      border:0;
+      border-radius:999px;
+      padding:11px 18px;
+      font-weight:700;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      letter-spacing:.01em;
+    }
+    .primary{
+      background:linear-gradient(135deg,#ff9b21,#ffb347);
+      color:#3b1f00;
+      box-shadow:0 6px 18px rgba(255,155,33,.45);
+    }
+    .primary:active{
+      transform:translateY(1px);
+      box-shadow:0 3px 10px rgba(255,155,33,.4);
+    }
+    .ghost{
+      background:#fff7e5;
+      color:#7a4a0d;
+      border:1px solid:#ffcf7c;
+    }
+    .danger{
+      background:#ffe3df;
+      border:1px solid:#f5b0a7;
+      color:#9b2b21;
+      padding-inline:10px;
+      border-radius:12px;
+      font-size:13px;
+    }
+
+    .success,.error{
+      margin:10px 0 0;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:600;
+      white-space:pre-wrap;
+      font-size:13px;
+    }
+    .success{
+      background:#e3f4e7;
+      border:1px solid #b7dfbf;
+      color:#166736;
+    }
+    .error{
+      background:#fde7e4;
+      border:1px solid #f0b2aa;
+      color:#b32819;
+    }
+    .req{color:#c25200}
+    .muted{color:var(--muted)}
+    .hidden{display:none}
+    .thankyou{
+      padding:44px 24px 40px;
+      text-align:center;
+    }
+    .thankyou h2{
+      margin-top:0;
+      color:#18412b;
+    }
+    .thankyou-img{
+      margin-top:20px;
+      max-width:260px;
+      width:100%;
+      border-radius:22px;
+      box-shadow:0 12px 26px rgba(0,0,0,.25);
+    }
+    .hr{
+      height:1px;
+      background:#edf1f6;
+      margin:14px 0;
+    }
+
+    .items-wrap{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border-radius:16px;
+      border:1px solid #e4ebf2;
+      background:#fbfcfe;
+      margin-top:6px;
+    }
+    table.items{
+      width:100%;
+      min-width:480px;
+      border-collapse:collapse;
+    }
+    table.items th,
+    table.items td{
+      border-bottom:1px solid #edf1f6;
+      padding:8px 10px;
+      font-size:13px;
+    }
+    table.items th{
+      font-weight:600;
+      text-align:left;
+      background:#f6fafc;
+      color:#355656;
+    }
+    table.items th:nth-child(4),
+    table.items td:nth-child(4){
+      text-align:right;
+      padding-right:16px;
+    }
+    table.items th:nth-child(5),
+    table.items td:nth-child(5){
+      width:40px;
+      text-align:center;
+      padding-right:8px;
+      padding-left:4px;
+    }
+
+    /* -------- RADIO GROUPS ---------- */
+    .option-group{
+      margin-top:6px;
+      padding-left:0;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:4px;
+      width:100%;
+      max-width:520px;
+    }
+    .option-group .choice{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin:0;
+      padding:0;
+    }
+    .option-group .label-text{
+      flex:1;
+      font-size:14px;
+      color:#38534a;
+    }
+    @media (min-width:769px){
+      .option-group .label-text{
+        white-space:nowrap;
+      }
+    }
+
+    #submitBtn{
+      width:auto;
+      padding:11px 26px;
+      font-size:15px;
+    }
+    #submitBtn:disabled{opacity:.6}
+
+    @media (max-width:1024px){
+      .wrap{margin:16px auto 28px;padding:8px}
+    }
+
+    @media (max-width:768px){
+      .wrap{margin:8px auto 24px;padding:6px}
+      .card{border-radius:20px;}
+      header{
+        padding:18px 18px 12px;
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .header-left{
+        align-items:flex-start;
+      }
+      .header-right{
+        margin-left:0;
+        margin-top:6px;
+        text-align:left;
+      }
+      .header-hero{
+        align-self:stretch;
+        text-align:center;
+        margin-top:10px;
+      }
+      .header-hero img{
+        max-width:240px;
+        width:100%;
+        margin:0 auto;
+      }
+      main{padding:16px 18px 20px}
+      .grid2{grid-template-columns:1fr}
+      .grid3{grid-template-columns:1fr 1fr}
+      .actions{flex-direction:column;align-items:stretch}
+      #submitBtn{width:100%;justify-content:center}
+      .option-group{max-width:100%;}
+      .option-group .label-text{white-space:normal;}
+    }
+
+    @media (max-width:520px){
+      main{padding:14px 14px 18px}
+      .header-text h1{font-size:22px}
+      .grid3{grid-template-columns:1fr}
+      table.items{min-width:100%;}
+      table.items th,
+      table.items td{padding:6px 4px;font-size:12px}
+    }
+
+    /* Responsive header tweaks */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 20px 18px 22px;
+      }
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .header-right {
+        margin-left: 0;
+        text-align: left;
+        align-items: flex-start;
+      }
+      .header-text h1 {
+        font-size: 26px;
+        line-height: 1.25;
+      }
+      .header-text p {
+        font-size: 13px;
+        max-width: none;
+      }
+      .header-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+    }
+
+    /* -------- FOOTER BAR ---------- */
+    .footer-bar{
+      margin-top:18px;
+      padding:0 4px 4px;
+    }
+    .footer-inner{
+      background:linear-gradient(90deg,#fdf8ea,#e9f8eb);
+      border-radius:22px;
+      box-shadow:0 14px 30px rgba(0,0,0,.12);
+      padding:16px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .footer-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex:1;
+      min-width:0;
+    }
+    .footer-icon{
+      font-size:30px;
+      flex-shrink:0;
+    }
+    .footer-text-wrap{
+      min-width:0;
+    }
+    .footer-title{
+      font-weight:700;
+      font-size:16px;
+      color:#174032;
+      margin-bottom:2px;
+    }
+    .footer-text{
+      font-size:13px;
+      color:#4c645b;
+    }
+    .footer-right img{
+      display:block;
+      max-width:150px;
+      border-radius:18px;
+      box-shadow:0 8px 18px rgba(0,0,0,.18);
+    }
+
+    @media (max-width:768px){
+      .footer-inner{
+        flex-direction:row;
+        align-items:center;
+      }
+      .footer-right img{
+        max-width:110px;
+      }
+    }
+    @media (max-width:540px){
+      .footer-inner{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .footer-right{
+        align-self:stretch;
+        text-align:center;
+        width:100%;
+      }
+      .footer-right img{
+        max-width:150px;
+        width:100%;
+      }
+    }
+
+    /* -------- FLOATING MANGO EMOJIS ---------- */
+    .mango-float{
+      position:fixed;
+      z-index:1;
+      font-size:26px;
+      opacity:0.55;
+      pointer-events:none;
+      animation:float-mango 16s linear infinite;
+    }
+    .mango-float-1{top:10%; left:4%;}
+    .mango-float-2{bottom:12%; right:6%; animation-duration:18s;}
+    .mango-float-3{top:55%; right:10%; animation-duration:20s;}
+
+    @keyframes float-mango{
+      0%{transform:translateY(0);}
+      50%{transform:translateY(-14px);}
+      100%{transform:translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <!-- subtle animated mango emojis -->
+  <div class="mango-float mango-float-1">🥭</div>
+  <div class="mango-float mango-float-2">🥭</div>
+  <div class="mango-float mango-float-3">🥭</div>
+
+  <div class="wrap">
+    <div class="card" id="card">
+      <header>
+        <div class="header-left">
+          <div class="emoji">🥭</div>
+          <div class="header-text">
+            <h1>Mango Order Booking</h1>
+            <p>Fresh imported mango boxes – book your pickup or delivery slot in a few easy steps.</p>
+          </div>
+          <div class="header-right">
+            <span><strong>Season Special</strong></span>
+            <span>Save $1/box with advance payment</span>
+          </div>
+        </div>
+        <div class="header-hero">
+          <img src="images/mango-family-eating.png" alt="Family enjoying mangoes">
+        </div>
+      </header>
+
+      <main>
+        <form id="mangoForm" enctype="multipart/form-data" novalidate>
+          <!-- 1) Customer Info -->
+          <div class="section">
+            <h3>1) Customer Info</h3>
+            <div class="grid2">
+              <div>
+                <label>Full Name <span class="req">*</span></label>
+                <input type="text" name="name" required />
+              </div>
+              <div>
+                <label>Email <span class="req">*</span></label>
+                <input type="email" name="email" required />
+              </div>
+              <div>
+                <label>Phone Number <span class="req">*</span></label>
+                <input type="tel" name="phone" required />
+              </div>
+              <div>
+                <label>Notes (optional)</label>
+                <input type="text" name="notes" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 2) Order Details -->
+          <div class="section">
+            <h3>2) Order Details</h3>
+            <div class="mini" style="margin-bottom:6px">
+              Prices — Alphonso $50 · Kesar $40 · Badami $35 · Langra $30 · Dasheri $20
+            </div>
+
+            <div class="items-wrap">
+              <table class="items" id="itemsTable">
+                <thead>
+                  <tr>
+                    <th style="width:44%">Variety</th>
+                    <th style="width:18%">Price/box</th>
+                    <th style="width:18%">Boxes</th>
+                    <th style="width:16%">Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+              </table>
+            </div>
+
+            <div class="actions" style="margin-top:10px">
+              <button type="button" class="ghost" id="addRowBtn">+ Add variety</button>
+            </div>
+          </div>
+
+          <!-- 3) Pickup / Delivery -->
+          <div class="section">
+            <h3>3) Pickup / Delivery</h3>
+            <div class="option-group" id="fulfillmentGroup">
+              <label class="choice">
+                <input type="radio" name="fulfillment" value="Pickup" checked>
+                <span class="label-text">Pickup for Free</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="fulfillment" value="Delivery">
+                <span class="label-text">Delivery for extra $10</span>
+              </label>
+            </div>
+
+            <div class="grid3" style="margin-top:10px">
+              <div>
+                <label id="dateLabel">Pickup Date <span class="req">*</span></label>
+                <input type="date" name="date" required />
+              </div>
+
+              <div id="timeWrap">
+                <label id="timeLabel">Pickup Time <span class="req">*</span></label>
+                <input type="time" name="time" required />
+              </div>
+
+              <div id="deliveryWindowWrap" class="hidden">
+                <label>Delivery Window <span class="req">*</span></label>
+                <select name="deliveryWindow">
+                  <option value="">— Select window —</option>
+                  <option data-start="07:00">7:00–8:00 AM</option>
+                  <option data-start="08:00">8:00–9:00 AM</option>
+                  <option data-start="09:00">9:00–10:00 AM</option>
+                  <option data-start="10:00">10:00–11:00 AM</option>
+                  <option data-start="11:00">11:00 AM–12:00 PM</option>
+                  <option data-start="12:00">12:00–1:00 PM</option>
+                  <option data-start="13:00">1:00–2:00 PM</option>
+                  <option data-start="14:00">2:00–3:00 PM</option>
+                  <option data-start="15:00">3:00–4:00 PM</option>
+                  <option data-start="16:00">4:00–5:00 PM</option>
+                  <option data-start="17:00">5:00–6:00 PM</option>
+                  <option data-start="18:00">6:00–7:00 PM</option>
+                  <option data-start="19:00">7:00–8:00 PM</option>
+                  <option data-start="20:00">8:00–9:00 PM</option>
+                  <option data-start="21:00">9:00–10:00 PM</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4) Totals -->
+          <div class="section">
+            <h3>4) Totals</h3>
+            <div class="grid3">
+              <div>
+                <label>Subtotal (boxes)</label>
+                <input type="text" id="subtotalBoxes" disabled />
+              </div>
+              <div>
+                <label>Delivery Fee</label>
+                <input type="text" id="deliveryFee" disabled />
+              </div>
+              <div>
+                <label>Advance Discount ($1/box)</label>
+                <input type="text" id="advanceDiscount" disabled />
+              </div>
+              <div>
+                <label>Total</label>
+                <input type="text" id="grandTotal" disabled />
+              </div>
+              <div>
+                <label>Balance Due</label>
+                <input type="text" id="balanceDue" disabled />
+              </div>
+            </div>
+          </div>
+
+          <!-- 5) Payment -->
+          <div class="section">
+            <h3>5) Payment</h3>
+            <div class="option-group" id="advanceGroup">
+              <label class="choice">
+                <input type="radio" name="advancePayment" value="No" checked>
+                <span class="label-text">Pay at pickup/delivery (no discount)</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="advancePayment" value="Yes">
+                <span class="label-text">Pay in advance (save $1 per valid box)</span>
+              </label>
+            </div>
+
+            <div id="paymentFields" class="hidden" style="margin-top:10px">
+              <div class="grid2">
+                <div>
+                  <label>Amount Paying Now (CAD)</label>
+                  <input type="number" name="amount" min="0" step="0.01"
+                         placeholder="e.g., full total or partial" />
+                </div>
+                <div>
+                  <label>e-Transfer Email (ID)</label>
+                  <input type="email" name="etransferId" placeholder="customer@email.com" />
+                </div>
+                <div>
+                  <label>Payment Date</label>
+                  <input type="date" name="paymentDate" />
+                </div>
+                <div>
+                  <label>Payment Time</label>
+                  <input type="time" name="paymentTime" />
+                </div>
+                <div style="grid-column:1/-1">
+                  <label>Upload Payment Screenshot (optional)</label>
+                  <input type="file" name="receipt" accept="image/*,.pdf" />
+                  <small class="hint">Images or PDF. Max 10 MB.</small>
+                </div>
+              </div>
+              <div class="hr"></div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="actions">
+            <button type="submit" class="primary" id="submitBtn">Submit Booking</button>
+            <span id="msg" class="mini" aria-live="polite"></span>
+          </div>
+        </form>
+      </main>
+    </div>
+
+    <!-- Decorative footer bar (will be hidden after successful submit) -->
+    <div class="footer-bar">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <div class="footer-icon">🥭</div>
+          <div class="footer-text-wrap">
+            <div class="footer-title">Thank you for sharing the mango joy!</div>
+            <div class="footer-text">
+              You&rsquo;ll receive an email confirmation once your booking is finalized.
+            </div>
+          </div>
+        </div>
+        <div class="footer-right">
+          <img src="images/mango-kids-juice.png" alt="Kids happily enjoying mango juice">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const WEB_APP_URL =
+      "https://script.google.com/macros/s/AKfycbxfwQRfZDJrHD-q9HTh7NXiAt5lHnuuY15zO6La9HYveNdMjyjhDb9Dbb1_6muCszaPww/exec";
+
+    const PRICES = {
+      "Alphonso (Apoos)":50,
+      "Kesar":40,
+      "Badami":35,
+      "Langra":30,
+      "Dasheri":20
+    };
+    const DELIVERY_FEE = 10;
+    const TAX_RATE = 0;
+    const TAX_ON_DELIVERY = true;
+    const ADVANCE_DISCOUNT_PER_BOX = 1;
+
+    const f = document.getElementById('mangoForm');
+    const card = document.getElementById('card');
+    const msg = document.getElementById('msg');
+    const itemsBody = document.getElementById('itemsBody');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const deliveryWindowWrap = document.getElementById('deliveryWindowWrap');
+    const paymentFields = document.getElementById('paymentFields');
+    const submitBtn = document.getElementById('submitBtn');
+    const timeWrap = document.getElementById('timeWrap');
+
+    function fmt(n){ return '$' + (Number(n||0)).toFixed(2); }
+
+    let amountTouched = false;
+
+    (function setMinDates(){
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth()+1).padStart(2,'0');
+      const d = String(now.getDate()).padStart(2,'0');
+      const todayStr = `${y}-${m}-${d}`;
+      if (f.date) f.date.min = todayStr;
+      // payment date can be in the past, so we don't set min here
+    })();
+
+    function addRow(variety, qty){
+      variety = variety || "";
+      qty = qty || 1;
+
+      const tr = document.createElement('tr');
+
+      const tdVar = document.createElement('td');
+      const sel = document.createElement('select');
+      sel.name='itemVariety[]'; sel.required=true;
+      let optionsHtml = '<option value="" disabled ' + (variety ? '' : 'selected') + '>Select…</option>';
+      for (const v in PRICES){
+        optionsHtml += `<option${v===variety ? ' selected' : ''}>${v}</option>`;
+      }
+      sel.innerHTML = optionsHtml;
+      tdVar.appendChild(sel);
+
+      const tdPrice = document.createElement('td');
+      const priceSpan = document.createElement('div');
+      priceSpan.textContent = variety ? fmt(PRICES[variety]) : '$0.00';
+      tdPrice.appendChild(priceSpan);
+
+      const tdQty = document.createElement('td');
+      const qtyInput = document.createElement('input');
+      qtyInput.type='number';
+      qtyInput.name='itemQty[]';
+      qtyInput.min='1';
+      qtyInput.step='1';
+      qtyInput.value=qty;
+      tdQty.appendChild(qtyInput);
+
+      const tdLine = document.createElement('td');
+      const lineSpan = document.createElement('div');
+      lineSpan.textContent='$0.00';
+      tdLine.appendChild(lineSpan);
+
+      const tdDel = document.createElement('td');
+      const delBtn = document.createElement('button');
+      delBtn.type='button';
+      delBtn.className='danger';
+      delBtn.textContent='×';
+      delBtn.title='Remove row';
+      delBtn.onclick = () => { tr.remove(); recalcTotals(); };
+      tdDel.appendChild(delBtn);
+
+      function recalcRow(){
+        const vv = sel.value;
+        const p = PRICES[vv] || 0;
+        const q = Number(qtyInput.value || 0);
+        priceSpan.textContent = fmt(p);
+        lineSpan.textContent = fmt(p*q);
+        recalcTotals();
+      }
+      sel.addEventListener('change', recalcRow);
+      qtyInput.addEventListener('input', recalcRow);
+
+      tr.appendChild(tdVar);
+      tr.appendChild(tdPrice);
+      tr.appendChild(tdQty);
+      tr.appendChild(tdLine);
+      tr.appendChild(tdDel);
+      itemsBody.appendChild(tr);
+      recalcRow();
+    }
+
+    function validLineItems(){
+      const items = [];
+      const rows = itemsBody.querySelectorAll('tr');
+      rows.forEach(tr => {
+        const v = tr.querySelector('select').value;
+        const q = Number(tr.querySelector('input').value || 0);
+        if (v && q>0){
+          const unit = PRICES[v] || 0;
+          items.push({v,q,unit,line:unit*q});
+        }
+      });
+      return items;
+    }
+
+    function recalcTotals(){
+      const items = validLineItems();
+      const subtotal = items.reduce((s,i)=>s+i.line,0);
+      const isDelivery = f.fulfillment.value === 'Delivery';
+      const delivery = isDelivery ? DELIVERY_FEE : 0;
+
+      const advSelected = f.advancePayment.value === 'Yes';
+      const totalQty = items.reduce((s,i)=>s+i.q,0);
+      const advanceDiscount = (advSelected && items.length>0) ? (totalQty * ADVANCE_DISCOUNT_PER_BOX) : 0;
+
+      const preTaxSubtotal = Math.max(0, subtotal + delivery - advanceDiscount);
+      const taxableBase = TAX_ON_DELIVERY ? preTaxSubtotal : Math.max(0, subtotal - advanceDiscount);
+      const tax = TAX_RATE ? +(taxableBase * TAX_RATE).toFixed(2) : 0;
+      const total = +(preTaxSubtotal + tax).toFixed(2);
+
+      let paid = 0;
+      if (f.amount) {
+        if (advSelected) {
+          if (!amountTouched) {
+            paid = total;
+            if (!isNaN(total)) f.amount.value = total.toFixed(2);
+          } else {
+            paid = Number(f.amount.value || 0);
+          }
+        } else {
+          paid = 0;
+          f.amount.value = '';
+          amountTouched = false;
+        }
+      }
+      const due = Math.max(0, +(total - paid).toFixed(2));
+
+      document.getElementById('subtotalBoxes').value   = fmt(subtotal);
+      document.getElementById('deliveryFee').value     = fmt(delivery);
+      document.getElementById('advanceDiscount').value = '- ' + fmt(advanceDiscount);
+      document.getElementById('grandTotal').value      = fmt(total);
+      document.getElementById('balanceDue').value      = fmt(due);
+
+      const showPay = advSelected && items.length>0;
+      if (showPay){
+        paymentFields.classList.remove('hidden');
+      } else {
+        paymentFields.classList.add('hidden');
+        if (f.etransferId) f.etransferId.value='';
+        if (f.paymentDate) f.paymentDate.value='';
+        if (f.paymentTime) f.paymentTime.value='';
+        if (f.receipt) f.receipt.value='';
+      }
+    }
+
+    function syncDeliveryTime(){
+      const isDelivery = f.fulfillment.value === 'Delivery';
+      if (!isDelivery) return;
+      const sel = f.deliveryWindow;
+      if (!sel) return;
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt) { f.time.value=''; return; }
+      const start = opt.getAttribute('data-start');
+      f.time.value = start || '';
+    }
+
+    function updatePickupTimeMin(){
+      if (!f.date) return;
+      const isDelivery = f.fulfillment.value === 'Delivery';
+      if (isDelivery) { f.time.min=''; return; }
+      const now = new Date();
+      const todayStr = now.toISOString().slice(0,10);
+      if (f.date.value === todayStr) {
+        const hh = String(now.getHours()).padStart(2,'0');
+        const mm = String(now.getMinutes()).padStart(2,'0');
+        f.time.min = `${hh}:${mm}`;
+      } else {
+        f.time.min = '';
+      }
+    }
+
+    function modeLabels(){
+      const isDelivery = f.fulfillment.value === 'Delivery';
+      document.getElementById('dateLabel').textContent =
+        (isDelivery ? 'Delivery Date' : 'Pickup Date') + ' *';
+      document.getElementById('timeLabel').textContent =
+        (isDelivery ? 'Delivery Time' : 'Pickup Time') + ' *';
+
+      if (isDelivery) {
+        timeWrap.classList.add('hidden');
+        f.time.value = '';
+        deliveryWindowWrap.classList.remove('hidden');
+        syncDeliveryTime();
+      } else {
+        timeWrap.classList.remove('hidden');
+        deliveryWindowWrap.classList.add('hidden');
+      }
+      updatePickupTimeMin();
+      recalcTotals();
+    }
+
+    function requireBasics(){
+      const name = (f.name.value || '').trim();
+      const email = (f.email.value || '').trim();
+      const phone = (f.phone.value || '').trim();
+
+      if (!name) { f.name.focus(); return 'Please enter your full name.'; }
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        f.email.focus(); return 'Please enter a valid email address.'; }
+      const digits = phone.replace(/\D/g,'');
+      if (digits.length < 10) { f.phone.focus(); return 'Please enter a valid phone number.'; }
+
+      if (!f.date.value) { f.date.focus(); return 'Please choose a pickup/delivery date.'; }
+
+      const isDelivery = f.fulfillment.value === 'Delivery';
+
+      const today = new Date(); today.setHours(0,0,0,0);
+      const chosenDate = new Date(f.date.value + 'T00:00:00');
+      if (chosenDate.getTime() < today.getTime()) {
+        return isDelivery ? 'Delivery date cannot be earlier than today.' :
+                            'Pickup date cannot be earlier than today.';
+      }
+
+      if (isDelivery) {
+        if (!f.deliveryWindow.value) { f.deliveryWindow.focus(); return 'Please select a delivery window.'; }
+        syncDeliveryTime();
+      } else {
+        if (!f.time.value) { f.time.focus(); return 'Please choose a pickup time.'; }
+      }
+
+      if (f.date.value && f.time.value) {
+        const chosen = new Date(f.date.value + 'T' + f.time.value + ':00');
+        const now = new Date();
+        if (chosen.getTime() < now.getTime()) {
+          return isDelivery ? 'Delivery time cannot be in the past.' :
+                              'Pickup time cannot be in the past.';
+        }
+      }
+
+      if (validLineItems().length === 0) {
+        return 'Please add at least one mango variety and a positive quantity.';
+      }
+
+      if (f.advancePayment.value === 'Yes') {
+        const amount = Number(f.amount.value || 0);
+        if (!(amount > 0)) { f.amount.focus(); return 'Please enter the amount you are paying now.'; }
+
+        const ref = (f.etransferId.value || '').trim();
+        if (!ref) {
+          f.etransferId.focus();
+          return 'Please enter the e-Transfer email address.';
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(ref)) {
+          f.etransferId.focus();
+          return 'Please enter a valid email address for e-Transfer ID.';
+        }
+
+        if (!f.paymentDate.value) { f.paymentDate.focus(); return 'Please select the payment date.'; }
+        if (!f.paymentTime.value) { f.paymentTime.focus(); return 'Please select the payment time.'; }
+
+        // --- Payment date/time must not be in the future ---
+        const now3 = new Date();
+        const todayStr = now3.toISOString().slice(0,10);
+        const paymentDateStr = f.paymentDate.value;
+
+        let paymentErrorMsg = '';
+
+        const isFutureDate = paymentDateStr > todayStr;
+        const isToday = paymentDateStr === todayStr;
+
+        // Future DATE -> date error only
+        if (isFutureDate) {
+          f.paymentDate.focus();
+          return 'Payment date cannot be in the future.';
+        }
+
+        // Date is today: check TIME in the future
+        if (isToday) {
+          const paymentDT = new Date(paymentDateStr + 'T' + f.paymentTime.value + ':00');
+          if (paymentDT.getTime() > now3.getTime()) {
+            f.paymentTime.focus();
+            return 'Payment time cannot be in the future.';
+          }
+        }
+
+        // If date is in the past, any time is allowed (no extra checks)
+      }
+      return '';
+    }
+
+    function toLocalISO(dateStr, timeStr){
+      const parts = dateStr.split('-');
+      const y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+      const tparts = (timeStr || '00:00').split(':');
+      const hh = Number(tparts[0] || 0), mm = Number(tparts[1] || 0);
+      return new Date(y, m-1, d, hh, mm, 0).toISOString();
+    }
+
+    function show(type, text){
+      if (!text) { msg.textContent=''; msg.className='mini'; return; }
+      msg.className = (type === 'ok') ? 'success' : 'error';
+      msg.textContent = text;
+    }
+
+    addRow();
+
+    addRowBtn.addEventListener('click', ()=>{
+      const rows = itemsBody.querySelectorAll('tr');
+      if (rows.length) {
+        const last = rows[rows.length - 1];
+        const lastVar = last.querySelector('select').value;
+        const lastQty = Number(last.querySelector('input').value || 0);
+        if (!lastVar) {
+          show('err','Please select a variety for the current row before adding another.');
+          last.querySelector('select').focus();
+          return;
+        }
+        if (!(lastQty > 0)) {
+          show('err','Quantity must be at least 1 for the current row.');
+          last.querySelector('input').focus();
+          return;
+        }
+      }
+      show('', '');
+      addRow();
+    });
+
+    document.querySelectorAll('input[name="fulfillment"]').forEach(r =>
+      r.addEventListener('change', modeLabels)
+    );
+    document.querySelectorAll('input[name="advancePayment"]').forEach(r =>
+      r.addEventListener('change', ()=>{
+        amountTouched = false;
+        recalcTotals();
+      })
+    );
+
+    if (f.deliveryWindow) {
+      f.deliveryWindow.addEventListener('change', syncDeliveryTime);
+    }
+    if (f.date) {
+      f.date.addEventListener('change', updatePickupTimeMin);
+    }
+    if (f.amount) {
+      f.amount.addEventListener('input', ()=>{
+        amountTouched = true;
+        recalcTotals();
+      });
+    }
+
+    modeLabels();
+    recalcTotals();
+
+    f.addEventListener('submit', e=>{
+      e.preventDefault();
+      const err = requireBasics();
+      if (err){ show('err', err); return; }
+
+      function fileToDataURL(file){
+        return new Promise((resolve,reject)=>{
+          const r = new FileReader();
+          r.onload = ()=>resolve(r.result);
+          r.onerror = reject;
+          r.readAsDataURL(file);
+        });
+      }
+
+      const fd = new FormData(f);
+      fd.set('isoDateTime', toLocalISO(f.date.value, f.time.value));
+
+      if (f.receipt && f.receipt.files && f.receipt.files[0]){
+        const file = f.receipt.files[0];
+        fd.set('receipt', file, file.name);
+        fileToDataURL(file).then(dataURL=>{
+          const parts = dataURL.split(',');
+          if (parts.length === 2){
+            const head = parts[0];
+            const b64 = parts[1];
+            const mimePart = head.split(':')[1] || '';
+            const mime = mimePart.split(';')[0] || 'application/octet-stream';
+            fd.set('receipt_b64', b64);
+            fd.set('receipt_name', file.name);
+            fd.set('receipt_type', mime);
+          }
+          sendForm(fd);
+        }).catch(()=>{
+          sendForm(fd);
+        });
+      } else {
+        sendForm(fd);
+      }
+    });
+
+    function sendForm(fd){
+      submitBtn.disabled = true;
+      show('ok','Submitting…');
+      fetch(WEB_APP_URL, { method:'POST', body:fd })
+        .then(res=>res.text())
+        .then(raw=>{
+          let data;
+          try { data = JSON.parse(raw); }
+          catch(e){ data = { ok:false, error:'Non-JSON response', raw }; }
+
+          if (data && data.ok){
+            // hide footer thank-you bar
+            const footer = document.querySelector('.footer-bar');
+            if (footer) footer.style.display = 'none';
+
+            // replace card with single thank-you + kids image
+            card.innerHTML =
+              '<div class="thankyou">' +
+                '<h2>Thank you for your order! 🥭</h2>' +
+                '<p>Your booking has been received. A confirmation email with your invoice has been sent.</p>' +
+                '<img src="images/mango-kids-juice.png" ' +
+                  'alt="Kids happily enjoying mango juice" class="thankyou-img">' +
+              '</div>';
+          } else {
+            submitBtn.disabled = false;
+            show('err','Server error: ' + (data.error || 'Unknown error'));
+            console.log('Server response:', data);
+          }
+        })
+        .catch(err=>{
+          submitBtn.disabled = false;
+          show('err','Network error: ' + err.message);
+        });
+    }
+  </script>
+</body>
+</html>
