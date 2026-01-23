@@ -1,0 +1,2238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- IMPORTANT:
+       1) Set WEB_APP_URL below to YOUR Apps Script Web App URL that ends with /exec
+       2) Then upload this folder to GitHub Pages (manage-booking/index.html)
+  -->
+  <meta charset="utf-8" />
+  <title>Mango Order Booking</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{
+      --bg-top:#fff7d6;
+      --bg-bottom:#e2f8da;
+      --card:#ffffff;
+      --text:#123027;
+      --muted:#6d7a7a;
+      --accent:#ff9b21;
+      --accent-dark:#d67400;
+      --accent-soft:#ffe0a8;
+      --input-bg:#f5f8fa;
+      --border:#dde4ec;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      min-height:100vh;
+      font:16px/1.5 system-ui,Segoe UI,Roboto,Helvetica,Arial;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 0%, #ffe6aa 0, transparent 65%),
+        radial-gradient(circle at 90% 100%, #c2f1b5 0, transparent 60%),
+        linear-gradient(180deg,var(--bg-top),var(--bg-bottom));
+    }
+    .wrap{
+      max-width:1100px;
+      margin:24px auto 40px;
+      padding:12px;
+      position:relative;
+      z-index:2;
+    }
+
+    .decor{display:none;}
+
+    .card{
+      position:relative;
+      z-index:2;
+      background:var(--card);
+      border-radius:26px;
+      border:1px solid rgba(0,0,0,.04);
+      box-shadow:0 18px 40px rgba(0,0,0,.18);
+      overflow:hidden;
+      width:100%;
+    }
+
+    /* -------- HEADER WITH HERO IMAGE ---------- */
+    header{
+      padding:22px 26px 16px;
+      background:linear-gradient(135deg,#ffe6b5,#ffe0a0,#ffb347);
+      border-bottom:1px solid rgba(0,0,0,.06);
+      display:flex;
+      gap:18px;
+      align-items:center;
+    }
+
+    .header-left{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      flex:1;
+      min-width:0;
+    }
+
+    header .emoji{
+      font-size:34px;
+      flex-shrink:0;
+    }
+
+    .header-text{
+      flex:1;
+      min-width:0;
+    }
+
+    .header-text h1{
+      margin:0 0 4px;
+      font-size:26px;
+      color:#3b1f00;
+    }
+
+    .header-text p{
+      margin:0;
+      color:#5c3b11;
+      font-size:14px;
+      max-width:420px;
+    }
+
+    .header-right{
+      margin-left:auto;
+      text-align:right;
+      font-size:12px;
+      color:#5c3b11;
+    }
+    .header-right span{display:block;}
+
+    .header-hero{
+      flex-shrink:0;
+    }
+    .header-hero img{
+      display:block;
+      max-width:260px;
+      border-radius:22px;
+      box-shadow:0 10px 24px rgba(0,0,0,.28);
+    }
+
+    main{
+      padding:18px 26px 24px;
+      background:#fff;
+    }
+
+    .section{margin-top:18px}
+    .section h3{
+      margin:0 0 8px;
+      font-size:18px;
+      color:#18412b;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px 16px;
+    }
+    .grid3{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:12px 16px;
+    }
+
+    
+#deliveryAddressWrap{grid-column:1 / -1;}
+label{
+      font-weight:600;
+      font-size:13px;
+      margin:8px 0 6px;
+      display:block;
+      color:#1c4330;
+    }
+
+    input:not([type="radio"]):not([type="checkbox"]),
+    select,
+    textarea{
+      width:100%;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:var(--input-bg);
+      color:var(--text);
+      outline:none;
+      font-size:14px;
+      transition:border-color .15s, box-shadow .15s, background .15s;
+    }
+    input:not([type="radio"]):not([type="checkbox"]):focus,
+    select:focus,
+    textarea:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 2px rgba(255,155,33,.35);
+      background:#ffffff;
+    }
+
+    input[type="radio"],
+    input[type="checkbox"]{
+      width:auto;
+      padding:0;
+      margin:0;
+      border:none;
+      background:transparent;
+      box-shadow:none;
+      accent-color:#ff9b21;
+      transform:scale(1.05);
+    }
+    input[type="radio"]:focus,
+    input[type="checkbox"]:focus{
+      outline:2px solid rgba(255,155,33,.6);
+      outline-offset:2px;
+      box-shadow:none;
+    }
+
+    small.hint{
+      color:var(--muted);
+      display:block;
+      margin-top:4px;
+      font-size:11px;
+    }
+    .mini{font-size:12px;color:var(--muted)}
+
+    .actions{
+      display:flex;
+      gap:12px;
+      margin-top:16px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    button{
+      cursor:pointer;
+      border:0;
+      border-radius:999px;
+      padding:11px 18px;
+      font-weight:700;
+      line-height:1;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      letter-spacing:.01em;
+    }
+    .primary{
+      background:linear-gradient(135deg,#ff9b21,#ffb347);
+      color:#3b1f00;
+      box-shadow:0 6px 18px rgba(255,155,33,.45);
+    }
+    .primary:active{
+      transform:translateY(1px);
+      box-shadow:0 3px 10px rgba(255,155,33,.4);
+    }
+    .ghost{
+      background:#fff7e5;
+      color:#7a4a0d;
+      border:1px solid:#ffcf7c;
+    }
+    .danger{
+      background:#ffe3df;
+      border:1px solid:#f5b0a7;
+      color:#9b2b21;
+      padding-inline:10px;
+      border-radius:12px;
+      font-size:13px;
+    }
+
+    .success,.error{
+      margin:10px 0 0;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:600;
+      white-space:pre-wrap;
+      font-size:13px;
+    }
+    .success{
+      background:#e3f4e7;
+      border:1px solid #b7dfbf;
+      color:#166736;
+    }
+    .error{
+      background:#fde7e4;
+      border:1px solid #f0b2aa;
+      color:#b32819;
+    }
+    .req{color:#c25200}
+    .muted{color:var(--muted)}
+    .hidden{display:none}
+    .thankyou{
+      padding:44px 24px 40px;
+      text-align:center;
+    }
+    .thankyou h2{
+      margin-top:0;
+      color:#18412b;
+    }
+    .thankyou-img{
+      margin-top:20px;
+      max-width:260px;
+      width:100%;
+      border-radius:22px;
+      box-shadow:0 12px 26px rgba(0,0,0,.25);
+    }
+    .hr{
+      height:1px;
+      background:#edf1f6;
+      margin:14px 0;
+    }
+
+    .items-wrap{
+      width:100%;
+      overflow-x:auto;
+      -webkit-overflow-scrolling:touch;
+      border-radius:16px;
+      border:1px solid #e4ebf2;
+      background:#fbfcfe;
+      margin-top:6px;
+    }
+    table.items{
+      width:100%;
+      min-width:480px;
+      border-collapse:collapse;
+    }
+    table.items th,
+    table.items td{
+      border-bottom:1px solid #edf1f6;
+      padding:8px 10px;
+      font-size:13px;
+    }
+    table.items th{
+      font-weight:600;
+      text-align:left;
+      background:#f6fafc;
+      color:#355656;
+    }
+    table.items th:nth-child(4),
+    table.items td:nth-child(4){
+      text-align:right;
+      padding-right:16px;
+    }
+    table.items th:nth-child(5),
+    table.items td:nth-child(5){
+      width:40px;
+      text-align:center;
+      padding-right:8px;
+      padding-left:4px;
+    }
+
+    /* -------- RADIO GROUPS ---------- */
+    .option-group{
+      margin-top:6px;
+      padding-left:0;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:4px;
+      width:100%;
+      max-width:520px;
+    }
+    .option-group .choice{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin:0;
+      padding:0;
+    }
+    .option-group .label-text{
+      flex:1;
+      font-size:14px;
+      color:#38534a;
+    }
+    @media (min-width:769px){
+      .option-group .label-text{
+        white-space:nowrap;
+      }
+    }
+
+    #submitBtn{
+      width:auto;
+      padding:11px 26px;
+      font-size:15px;
+    }
+    #submitBtn:disabled{opacity:.6}
+
+    @media (max-width:1024px){
+      .wrap{margin:16px auto 28px;padding:8px}
+    }
+
+    @media (max-width:768px){
+      .wrap{margin:8px auto 24px;padding:6px}
+      .card{border-radius:20px;}
+      header{
+        padding:18px 18px 12px;
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .header-left{
+        align-items:flex-start;
+      }
+      .header-right{
+        margin-left:0;
+        margin-top:6px;
+        text-align:left;
+      }
+      .header-hero{
+        align-self:stretch;
+        text-align:center;
+        margin-top:10px;
+      }
+      .header-hero img{
+        max-width:240px;
+        width:100%;
+        margin:0 auto;
+      }
+      main{padding:16px 18px 20px}
+      .grid2{grid-template-columns:1fr}
+      .grid3{grid-template-columns:1fr 1fr}
+      .actions{flex-direction:column;align-items:stretch}
+      #submitBtn{width:100%;justify-content:center}
+      .option-group{max-width:100%;}
+      .option-group .label-text{white-space:normal;}
+    }
+
+    @media (max-width:520px){
+      main{padding:14px 14px 18px}
+      .header-text h1{font-size:22px}
+      .grid3{grid-template-columns:1fr}
+      table.items{min-width:100%;}
+      table.items th,
+      table.items td{padding:6px 4px;font-size:12px}
+    }
+
+    /* Responsive header tweaks */
+    @media (max-width: 768px) {
+      .hero {
+        padding: 20px 18px 22px;
+      }
+      .header-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+      .header-right {
+        margin-left: 0;
+        text-align: left;
+        align-items: flex-start;
+      }
+      .header-text h1 {
+        font-size: 26px;
+        line-height: 1.25;
+      }
+      .header-text p {
+        font-size: 13px;
+        max-width: none;
+      }
+      .header-badge {
+        font-size: 12px;
+        padding: 6px 12px;
+      }
+    }
+
+    /* -------- FOOTER BAR ---------- */
+    .footer-bar{
+      margin-top:18px;
+      padding:0 4px 4px;
+    }
+    .footer-inner{
+      background:linear-gradient(90deg,#fdf8ea,#e9f8eb);
+      border-radius:22px;
+      box-shadow:0 14px 30px rgba(0,0,0,.12);
+      padding:16px 20px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .footer-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      flex:1;
+      min-width:0;
+    }
+    .footer-icon{
+      font-size:30px;
+      flex-shrink:0;
+    }
+    .footer-text-wrap{
+      min-width:0;
+    }
+    .footer-title{
+      font-weight:700;
+      font-size:16px;
+      color:#174032;
+      margin-bottom:2px;
+    }
+    .footer-text{
+      font-size:13px;
+      color:#4c645b;
+    }
+    .footer-right img{
+      display:block;
+      max-width:150px;
+      border-radius:18px;
+      box-shadow:0 8px 18px rgba(0,0,0,.18);
+    }
+
+    @media (max-width:768px){
+      .footer-inner{
+        flex-direction:row;
+        align-items:center;
+      }
+      .footer-right img{
+        max-width:110px;
+      }
+    }
+    @media (max-width:540px){
+      .footer-inner{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+      .footer-right{
+        align-self:stretch;
+        text-align:center;
+        width:100%;
+      }
+      .footer-right img{
+        max-width:150px;
+        width:100%;
+      }
+    }
+
+    /* -------- FLOATING MANGO EMOJIS ---------- */
+    .mango-float{
+      position:fixed;
+      z-index:1;
+      font-size:26px;
+      opacity:0.55;
+      pointer-events:none;
+      animation:float-mango 16s linear infinite;
+    }
+    .mango-float-1{top:10%; left:4%;}
+    .mango-float-2{bottom:12%; right:6%; animation-duration:18s;}
+    .mango-float-3{top:55%; right:10%; animation-duration:20s;}
+
+    @keyframes float-mango{
+      0%{transform:translateY(0);}
+      50%{transform:translateY(-14px);}
+      100%{transform:translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <!-- subtle animated mango emojis -->
+  <div class="mango-float mango-float-1">🥭</div>
+  <div class="mango-float mango-float-2">🥭</div>
+  <div class="mango-float mango-float-3">🥭</div>
+
+  <div class="wrap">
+    <div class="card" id="card">
+      <header>
+        <div class="header-left">
+          <div class="emoji">🥭</div>
+          <div class="header-text">
+            <h1>Manage Booking</h1>
+
+  
+<p>Fresh imported mango boxes – book your pickup or delivery slot in a few easy steps.</p>
+          </div>
+          <div class="header-right">
+            <span><strong>Season Special</strong></span>
+            <span>Save $1/box with advance payment</span>
+          </div>
+        </div>
+        <div class="header-hero">
+          <img src="images/mango-family-eating.png" alt="Family enjoying mangoes">
+        </div>
+      </header>
+
+      <main>
+
+  <div class="card" id="manageCard" style="margin-top:16px">
+      <h2 style="margin:0 0 10px">Find your booking</h2>
+      <p class="muted" style="margin-top:0">Search using <strong>Reference #</strong> OR <strong>Email</strong> OR <strong>Phone</strong>.</p>
+      <div class="grid2">
+        <div>
+          <label for="searchQuery">Reference # / Email / Phone</label>
+          <input id="searchQuery" type="text" placeholder="e.g. 3949 or customer@email.com or 647..." />
+        </div>
+        <div style="display:flex;align-items:flex-end;gap:10px">
+          <button type="button" class="btn" id="btnSearch" style="min-width:160px">Search booking</button>
+        </div>
+      </div>
+      <div id="searchMsg" class="alert" style="display:none;margin-top:12px"></div>
+    </div>
+  
+    <div class="card" id="existingCard" style="margin-top:16px;display:none">
+      <h2 style="margin:0 0 10px">Existing Booking</h2>
+      <div id="existingLockMsg" class="alert" style="display:none;margin-bottom:12px"></div>
+      <div class="grid3">
+        <div><label>Reference #</label><input id="exRef" type="text" readonly></div>
+        <div><label>Invoice #</label><input id="exInv" type="text" readonly></div>
+        <div><label>Status</label><input id="exStatus" type="text" readonly></div>
+      </div>
+      <div class="grid3">
+        <div><label>Name</label><input id="exName" type="text" readonly></div>
+        <div><label>Email</label><input id="exEmail" type="text" readonly></div>
+        <div><label>Phone</label><input id="exPhone" type="text" readonly></div>
+      </div>
+      <div class="grid3">
+        <div><label>Fulfillment</label><input id="exFulfillment" type="text" readonly></div>
+        <div><label>Date</label><input id="exDate" type="text" readonly></div>
+        <div><label>Time / Window</label><input id="exTime" type="text" readonly></div>
+      </div>
+      <div class="grid3">
+        <div><label>Total</label><input id="exTotal" type="text" readonly></div>
+        <div><label>Paid</label><input id="exPaid" type="text" readonly></div>
+        <div><label>Balance Due</label><input id="exBalance" type="text" readonly></div>
+      </div>
+      <div class="grid2">
+        <div><label>Invoice Link</label><input id="exInvoiceLink" type="text" readonly></div>
+        <div><label>Receipt Link</label><input id="exReceiptLink" type="text" readonly></div>
+      </div>
+      <div id="paymentHistoryBox" style="margin-top:12px;display:none"></div>
+    </div>
+  
+        <div id="editArea" class="hidden">
+          <form id="mangoForm" enctype="multipart/form-data" novalidate method="post" target="mango_hidden_iframe">
+          <input type="hidden" name="isoDateTime" value="">
+          <input type="hidden" name="requestId" value="">
+          <input type="hidden" name="receipt_b64" value="">
+          <input type="hidden" name="receipt_name" value="">
+          <input type="hidden" name="receipt_type" value="">
+          <!-- 1) Customer Info -->
+          <div class="section">
+            <h3>1) Customer Info</h3>
+            <div class="grid2">
+              <div>
+                <label>Full Name <span class="req">*</span></label>
+                <input type="text" name="name" required />
+              </div>
+              <div>
+                <label>Email <span class="req">*</span></label>
+                <input type="email" name="email" required />
+              </div>
+              <div>
+                <label>Phone Number <span class="req">*</span></label>
+                <input type="tel" name="phone" required />
+              </div>
+              <div>
+                <label>Notes (optional)</label>
+                <input type="text" name="notes" />
+              </div>
+            </div>
+          </div>
+
+          <!-- 2) Order Details -->
+          <div class="section">
+            <h3>2) Order Details</h3>
+            <div class="mini" style="margin-bottom:6px">
+              Prices — Alphonso $50 · Kesar $40 · Badami $35 · Langra $30 · Dasheri $20
+            </div>
+
+            <div class="items-wrap">
+              <table class="items" id="itemsTable">
+                <thead>
+                  <tr>
+                    <th style="width:44%">Variety</th>
+                    <th style="width:18%">Price/box</th>
+                    <th style="width:18%">Boxes</th>
+                    <th style="width:16%">Amount</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="itemsBody"></tbody>
+              </table>
+            </div>
+
+            <div class="actions" style="margin-top:10px">
+              <button type="button" class="ghost" id="addRowBtn">+ Add variety</button>
+            </div>
+          </div>
+
+          <!-- 3) Pickup / Delivery -->
+          <div class="section">
+            <h3>3) Pickup / Delivery</h3>
+            <div class="option-group" id="fulfillmentGroup">
+              <label class="choice">
+                <input type="radio" name="fulfillment" value="Pickup" checked>
+                <span class="label-text">Pickup for Free</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="fulfillment" value="Delivery">
+                <span class="label-text">Delivery for extra $10</span>
+              </label>
+            </div>
+
+            <div class="grid3" style="margin-top:10px">
+              <div>
+                <label id="dateLabel">Pickup Date <span class="req">*</span></label>
+                <select id="dateSelect" name="date" required>
+                  <option value="">— Select date —</option>
+                </select>
+              </div>
+
+              <div id="timeWrap">
+                <label id="timeLabel">Pickup Time Window <span class="req">*</span></label>
+                <select id="timeSelect" name="time" required>
+                  <option value="">— Select time window —</option>
+                  <option value="09:00">9:00 AM – 12:00 PM</option>
+                  <option value="12:00">12:00 PM – 3:00 PM</option>
+                  <option value="15:00">3:00 PM – 6:00 PM</option>
+                  <option value="18:00">6:00 PM – 8:00 PM</option>
+                </select>
+              </div>
+
+              <div id="deliveryWindowWrap" class="hidden">
+                <label>Delivery Time Window <span class="req">*</span></label>
+                <select id="deliveryWindow" name="deliveryWindow">
+                  <option value="">— Select time window —</option>
+                  <option value="9:00 AM – 12:00 PM" data-start="09:00">9:00 AM – 12:00 PM</option>
+                  <option value="12:00 PM – 3:00 PM" data-start="12:00">12:00 PM – 3:00 PM</option>
+                  <option value="3:00 PM – 6:00 PM" data-start="15:00">3:00 PM – 6:00 PM</option>
+                  <option value="6:00 PM – 8:00 PM" data-start="18:00">6:00 PM – 8:00 PM</option>
+                </select>
+              </div>
+
+              <div id="deliveryAddressWrap" class="hidden" style="margin-top:12px">
+                            <div style="margin-bottom:10px">
+                              <label>Search Address (postal code or start typing)</label>
+                              <input type="text" id="deliveryAddressSearch" placeholder="Start typing your address or postal code" autocomplete="off" />
+                              <small class="hint">Select your address from the dropdown to auto-fill below. If you can't find it, type manually in the fields below.</small>
+                            </div>
+                            <div class="grid3">
+                              <div>
+                                <label>Street Name &amp; Number <span class="req">*</span></label>
+                                <input type="text" name="deliveryStreet" id="deliveryStreet" placeholder="123 Main St" />
+                              </div>
+                              <div>
+                                <label>Suite Number</label>
+                                <input type="text" name="deliveryUnit" id="deliveryUnit" placeholder="Unit / Apt" />
+                              </div>
+                              <div>
+                                <label>City <span class="req">*</span></label>
+                                <input type="text" name="deliveryCity" id="deliveryCity" placeholder="Niagara Falls" />
+                              </div>
+                            </div>
+                            <div class="grid3" style="margin-top:10px">
+                              <div>
+                                <label>Postal Code <span class="req">*</span></label>
+                                <input type="text" name="deliveryPostal" id="deliveryPostal" placeholder="A1A 1A1" />
+                              </div>
+                              <div>
+                                <label>Buzzer Code</label>
+                                <input type="text" name="deliveryBuzzer" id="deliveryBuzzer" placeholder="Optional" />
+                              </div>
+                              <div></div>
+                            </div>
+                            <small class="hint">Delivery address is required for Delivery orders only.</small>
+                          </div>
+</div>
+          </div>
+
+          <!-- 4) Totals -->
+          <div class="section">
+            <h3>4) Totals</h3>
+            <div class="grid3">
+              <div>
+                <label>Subtotal (boxes)</label>
+                <input type="text" id="subtotalBoxes" disabled />
+              </div>
+              <div>
+                <label>Delivery Fee</label>
+                <input type="text" id="deliveryFee" disabled />
+              </div>
+              <div>
+                <label>Advance Discount ($1/box)</label>
+                <input type="text" id="advanceDiscount" disabled />
+              </div>
+              <div>
+                <label>Total</label>
+                <input type="text" id="grandTotal" disabled />
+              </div>
+              <div>
+                <label>Balance Due</label>
+                <input type="text" id="balanceDue" disabled />
+              </div>
+            </div>
+          </div>
+
+          <!-- 5) Payment -->
+          <div class="section">
+            <h3>5) Payment</h3>
+            <div class="option-group" id="advanceGroup">
+              <label class="choice">
+                <input type="radio" name="advancePayment" value="No" checked>
+                <span class="label-text">Pay at pickup/delivery (no discount)</span>
+              </label>
+              <label class="choice">
+                <input type="radio" name="advancePayment" value="Yes">
+                <span class="label-text">Pay in advance (save $1 per valid box)</span>
+              </label>
+            </div>
+
+            <div id="paymentFields" class="hidden" style="margin-top:10px">
+              <div class="grid2">
+                <div>
+                  <label>Amount Paying Now (CAD)</label>
+                  <input type="number" name="amount" min="0" step="0.01"
+                         placeholder="e.g., full total or partial" />
+                </div>
+                <div>
+                  <label>e-Transfer Email (ID)</label>
+                  <input type="email" name="etransferId" placeholder="customer@email.com" />
+                </div>
+                <div>
+                  <label>Payment Date</label>
+                  <input type="date" name="paymentDate" />
+                </div>
+                <div>
+                  <label>Payment Time</label>
+                  <input type="time" name="paymentTime" />
+                </div>
+                <div style="grid-column:1/-1">
+                  <label>Upload Payment Screenshot (optional)</label>
+                  <input type="file" name="receipt" accept="image/*,.pdf" />
+                  <small class="hint">Images or PDF. Max 10 MB.</small>
+                </div>
+              </div>
+              <div class="hr"></div>
+            </div>
+          </div>
+
+          <!-- Submit -->
+          <div class="actions">
+            <button type="submit" class="primary" id="submitBtn">Update Booking</button>
+        <button type="button" class="btn" id="cancelBtn" style="margin-left:12px;background:#ddd;color:#222">Cancel Booking</button>
+            <div id="msg" class="mini" aria-live="polite"></div>
+          </div>
+        </form>
+        </div>
+      </main>
+    </div>
+
+    <!-- Decorative footer bar (will be hidden after successful submit) -->
+    <div class="footer-bar hidden" id="footerBar">
+      <div class="footer-inner">
+        <div class="footer-left">
+          <div class="footer-icon">🥭</div>
+          <div class="footer-text-wrap">
+            <div class="footer-title">Thank you for sharing the mango joy!</div>
+            <div class="footer-text">
+              You&rsquo;ll receive an email confirmation once your booking is finalized.
+            </div>
+          </div>
+        </div>
+        <div class="footer-right">
+          <img src="images/mango-kids-juice.png" alt="Kids happily enjoying mango juice">
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    <iframe id="mango_hidden_iframe" name="mango_hidden_iframe" class="hidden" title="hidden submit frame"></iframe>
+    <div id="server_preview_note" class="mini hidden" style="margin-top:10px">
+      <strong>Debug:</strong> The box below shows what the Apps Script server returned after submit (useful if confirmation is not received).
+    </div>
+  <script>
+    const WEB_APP_URL =
+      "https://script.google.com/macros/s/AKfycbwjUI_xrqKJudIMc1Q4r0Bw2avG6Ch2dGUQrR93NKB_3MZcmbk5f4eaE3EaJWihz1940Q/exec";
+
+    // Use CONFIG_URL for GET (can include ?action=...), but ALWAYS post to base /exec
+    const CONFIG_URL = WEB_APP_URL;
+    const POST_URL = String(WEB_APP_URL).split('?')[0];
+
+    
+    // -------- GitHub Pages (no CORS) helpers --------
+    function jsonpGet(action, params){
+      return new Promise((resolve, reject)=>{
+        const cb = '__jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+        const u = new URL(CONFIG_URL);
+        u.searchParams.set('action', action);
+        u.searchParams.set('cb', cb);
+        Object.keys(params||{}).forEach(k=> u.searchParams.set(k, params[k]));
+        // cache-bust
+        u.searchParams.set('_ts', String(Date.now()));
+
+        window[cb] = (data) => {
+          try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+          resolve(data);
+        };
+
+        const script = document.createElement('script');
+        script.src = u.toString();
+        script.async = true;
+        script.onerror = () => {
+          try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+          reject(new Error('Failed to load from server. Please confirm your Web App URL is correct and deployed as /exec.'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    async function apiGet(action, params){
+      return jsonpGet(action, params);
+    }
+
+    // POST via hidden iframe + postMessage (avoids CORS)
+    function apiPostManage(manageAction, payload){
+      return new Promise((resolve, reject)=>{
+        const form = document.getElementById('manage_hidden_form');
+        const iframe = document.getElementById('manage_hidden_iframe');
+        if (!form || !iframe) return reject(new Error('Internal error: missing hidden form/iframe'));
+
+        const handler = (ev) => {
+          let data = ev.data;
+          if (typeof data === 'string') { try{ data = JSON.parse(data); }catch(_e){} }
+          if (!data || typeof data !== 'object' || !('ok' in data)) return;
+          window.removeEventListener('message', handler);
+          if (data.ok) resolve(data);
+          else reject(new Error(data.error || 'Server error'));
+        };
+        window.addEventListener('message', handler);
+
+        // populate hidden fields
+        form.action = POST_URL; // must be base /exec
+        form.querySelector('input[name="manageAction"]').value = manageAction;
+        form.querySelector('input[name="payload"]').value = JSON.stringify(payload || {});
+        form.querySelector('input[name="referenceNumber"]').value = (payload && (payload.referenceNumber||payload.ref)) ? (payload.referenceNumber||payload.ref) : '';
+        form.querySelector('input[name="searchKey"]').value = (payload && (payload.searchKey||payload.q||payload.token)) ? (payload.searchKey||payload.q||payload.token) : '';
+
+        form.submit();
+
+        setTimeout(()=>{
+          window.removeEventListener('message', handler);
+          reject(new Error('No response from server. Please confirm your Apps Script web app is deployed as /exec and access is set to Anyone.'));
+        }, 30000);
+      });
+    }
+    // -----------------------------------------------
+let PRICES = {
+      "Alphonso (Apoos)":50,
+      "Kesar":40,
+      "Badami":35,
+      "Langra":30,
+      "Dasheri":20
+    };
+
+    // Live config (from Config_* sheets)
+    let LIVE_VARIETIES = null;        // array of {name,price,active}
+    let LIVE_DATES_PICKUP = null;     // array of YYYY-MM-DD
+    let LIVE_DATES_DELIVERY = null;   // array of YYYY-MM-DD
+    let SLOTS_PICKUP = null;          // array of {start,label}
+    let SLOTS_DELIVERY = null;        // array of {start,label}
+
+    // Per-date availability (preferred)
+    // availability.pickup['YYYY-MM-DD'] = [{start:'HH:MM', label:'...'}, ...]
+    // availability.delivery['YYYY-MM-DD'] = [{start:'HH:MM', label:'...'}, ...]
+    let LIVE_AVAIL = null;
+
+    async function loadLiveConfig(){
+      try{
+        const u = new URL(CONFIG_URL);
+        u.searchParams.set('action','getConfig');
+        const data = await apiGet('getConfig', {});
+        if (!data || !data.ok) return;
+
+        // Varieties/prices
+        if (Array.isArray(data.varieties)){
+          LIVE_VARIETIES = data.varieties.filter(v=>v && v.active);
+          const next = {};
+          LIVE_VARIETIES.forEach(v => { next[String(v.name)] = Number(v.price||0); });
+          if (Object.keys(next).length) PRICES = next;
+        }
+
+        // Dates
+        if (data.dates){
+          LIVE_DATES_PICKUP = Array.isArray(data.dates.pickup) ? data.dates.pickup : null;
+          LIVE_DATES_DELIVERY = Array.isArray(data.dates.delivery) ? data.dates.delivery : null;
+        }
+
+        // Slots
+        if (data.slots){
+          SLOTS_PICKUP = Array.isArray(data.slots.pickup) ? data.slots.pickup : null;
+          SLOTS_DELIVERY = Array.isArray(data.slots.delivery) ? data.slots.delivery : null;
+        }
+
+
+        // Per-date availability (preferred)
+        if (data.availability){
+          LIVE_AVAIL = data.availability;
+        } else {
+          LIVE_AVAIL = null;
+        }
+        // Update prices banner text
+        const minis = Array.from(document.querySelectorAll('.mini'));
+        const priceMini = minis.find(el => (el.textContent||'').trim().startsWith('Prices'));
+        if (priceMini){
+          const parts = Object.keys(PRICES).map(k => `${k} $${Number(PRICES[k]||0)}`);
+          priceMini.textContent = 'Prices — ' + parts.join(' · ');
+        }
+
+        // Refresh existing variety selects (if rows were already built)
+        refreshVarietySelects();
+        // Refresh time windows
+        enforceTimeWindows();
+        // Refresh dates list
+        populateAllowedDates();
+
+      } catch(err){
+        // If config fails, silently keep default hard-coded values
+        console.warn('Config load failed', err);
+      }
+    }
+
+    function refreshVarietySelects(){
+      const selects = document.querySelectorAll('#itemsTable select');
+      selects.forEach(sel=>{
+        const current = sel.value;
+        let optionsHtml = '<option disabled ' + (current ? '' : 'selected') + '>Select…</option>';
+        for (const v in PRICES){
+          optionsHtml += `<option${v===current ? ' selected' : ''}>${v}</option>`;
+        }
+        sel.innerHTML = optionsHtml;
+        if (!(current in PRICES)) sel.value = '';
+      });
+      // prices per-row get recalculated by recalcTotals() later
+    }
+
+    const DELIVERY_FEE = 10;
+    const TAX_RATE = 0;
+    const TAX_ON_DELIVERY = true;
+    const ADVANCE_DISCOUNT_PER_BOX = 1;
+
+    const f = document.getElementById('mangoForm');
+    const card = document.getElementById('card');
+    const msg = document.getElementById('msg');
+    const itemsBody = document.getElementById('itemsBody');
+    const addRowBtn = document.getElementById('addRowBtn');
+    const deliveryWindowWrap = document.getElementById('deliveryWindowWrap');
+    const paymentFields = document.getElementById('paymentFields');
+    const submitBtn = document.getElementById('submitBtn');
+    const timeWrap = document.getElementById('timeWrap');
+
+    // ===== Weekend-only date picker (current/future only; coming + following weekend; within 14 days) =====
+    const dateSelect = document.getElementById('dateSelect');
+    const timeSelect = document.getElementById('timeSelect');
+    const deliveryWindowSelect = document.getElementById('deliveryWindow');
+    const deliveryAddressWrap = document.getElementById('deliveryAddressWrap');
+    const dateLabelEl = document.getElementById('dateLabel');
+    const timeLabelEl = document.getElementById('timeLabel');
+
+    function isWeekend(d){
+      const day = d.getDay();
+      return day === 0 || day === 6;
+    }
+    function ymd(d){
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2,'0');
+      const dd = String(d.getDate()).padStart(2,'0');
+      return `${yyyy}-${mm}-${dd}`;
+    }
+    function startOfDay(d){
+      const x = new Date(d);
+      x.setHours(0,0,0,0);
+      return x;
+    }
+    function nextSaturday(from){
+      const d = startOfDay(from);
+      const day = d.getDay(); // 0 Sun .. 6 Sat
+      const add = (6 - day + 7) % 7;
+      d.setDate(d.getDate() + add);
+      return d;
+    }
+
+    const TIME_WINDOWS = [
+      {start:"09:00", label:"9:00 AM – 12:00 PM"},
+      {start:"12:00", label:"12:00 PM – 3:00 PM"},
+      {start:"15:00", label:"3:00 PM – 6:00 PM"},
+      {start:"18:00", label:"6:00 PM – 8:00 PM"},
+    ];
+
+    function formatDateForOption(d){
+      return d.toLocaleDateString(undefined, {weekday:'short', year:'numeric', month:'short', day:'numeric'});
+    }
+
+    function getSlotsFor_(modeKey, dateStr){
+      // modeKey: 'pickup' | 'delivery'
+      if (LIVE_AVAIL && LIVE_AVAIL[modeKey] && dateStr){
+        const list = LIVE_AVAIL[modeKey][dateStr];
+        if (Array.isArray(list) && list.length) return list;
+      }
+      if (modeKey === 'pickup' && Array.isArray(SLOTS_PICKUP) && SLOTS_PICKUP.length) return SLOTS_PICKUP;
+      if (modeKey === 'delivery' && Array.isArray(SLOTS_DELIVERY) && SLOTS_DELIVERY.length) return SLOTS_DELIVERY;
+      return TIME_WINDOWS;
+    }
+
+    function buildTimeSelect_(slotList){
+      if (!timeSelect) return;
+      const current = timeSelect.value;
+      timeSelect.innerHTML = `<option value="">— Select time window —</option>`;
+      (slotList || []).forEach(w=>{
+        const opt = document.createElement('option');
+        opt.value = String(w.start || '').trim();
+        opt.textContent = String(w.label || w.start || '').trim();
+        timeSelect.appendChild(opt);
+      });
+      if (current && Array.from(timeSelect.options).some(o=>o.value===current)){
+        timeSelect.value = current;
+      } else if (timeSelect.required) {
+        timeSelect.value = '';
+      }
+    }
+
+    
+    function buildDeliveryWindowSelect_(slotList){
+      if (!deliveryWindowSelect) return;
+      const current = deliveryWindowSelect.value;
+      deliveryWindowSelect.innerHTML = `<option value="">— Select time window —</option>`;
+      (slotList || []).forEach(w=>{
+        const opt = document.createElement('option');
+        const start = String(w.start || '').trim();
+        const label = String(w.label || w.start || '').trim();
+        opt.value = label;           // send label to Apps Script / Sheets
+        opt.dataset.start = start;   // used to set start time for calendar/invoice
+        opt.textContent = label;
+        deliveryWindowSelect.appendChild(opt);
+      });
+      if (current && Array.from(deliveryWindowSelect.options).some(o=>o.value===current)){
+        deliveryWindowSelect.value = current;
+      } else if (deliveryWindowSelect.required){
+        deliveryWindowSelect.value = '';
+      }
+    }
+
+function buildDeliveryWindowSelect(){
+      // Backward compatibility: keep existing calls working
+      const dateStr = (dateSelect && dateSelect.value) ? String(dateSelect.value) : '';
+      const list = (f && f.fulfillment && f.fulfillment.value === 'Delivery')
+        ? getSlotsFor_('delivery', dateStr)
+        : getSlotsFor_('delivery', dateStr);
+      buildDeliveryWindowSelect_(list);
+    }
+
+    function updateTimeOptions_(){
+      const isDelivery = (f && f.fulfillment && f.fulfillment.value === 'Delivery');
+      const dateStr = (dateSelect && dateSelect.value) ? String(dateSelect.value) : '';
+
+      if (!dateStr){
+        // Clear selects (keep placeholders)
+        buildTimeSelect_([]);
+        buildDeliveryWindowSelect_([]);
+        if (isDelivery) syncDeliveryTime();
+        return;
+      }
+
+      if (isDelivery){
+        const list = getSlotsFor_('delivery', dateStr);
+        buildDeliveryWindowSelect_(list);
+        // keep hidden "time" select populated with start times so it can submit reliably
+        buildTimeSelect_(list);
+        syncDeliveryTime();
+      } else {
+        const list = getSlotsFor_('pickup', dateStr);
+        buildTimeSelect_(list);
+        // deliveryWindow not used in pickup mode, but keep it in sync for stability
+        buildDeliveryWindowSelect_(getSlotsFor_('delivery', dateStr));
+      }
+    }
+
+    
+    function populateAllowedDates(){
+      if (!dateSelect) return;
+
+      const isDelivery = (f && f.fulfillment && f.fulfillment.value === 'Delivery');
+      const modeKey = isDelivery ? 'delivery' : 'pickup';
+
+      // Preferred: build dates from per-date availability
+      let liveDates = null;
+      if (LIVE_AVAIL && LIVE_AVAIL[modeKey] && typeof LIVE_AVAIL[modeKey] === 'object'){
+        liveDates = Object.keys(LIVE_AVAIL[modeKey] || {}).filter(k=>{
+          const arr = LIVE_AVAIL[modeKey][k];
+          return Array.isArray(arr) && arr.length;
+        });
+      } else {
+        liveDates = isDelivery ? LIVE_DATES_DELIVERY : LIVE_DATES_PICKUP;
+      }
+
+      if (Array.isArray(liveDates) && liveDates.length){
+        const today = startOfDay(new Date());
+        const allowed = liveDates
+          .map(s => new Date(String(s).trim() + 'T00:00:00'))
+          .filter(d => !isNaN(d.getTime()))
+          .filter(d => startOfDay(d).getTime() >= today.getTime())
+          .sort((a,b)=>a.getTime()-b.getTime());
+
+        const prev = dateSelect.value;
+        dateSelect.innerHTML = '<option value="">— Select date —</option>';
+        allowed.forEach(d=>{
+          const opt = document.createElement('option');
+          opt.value = ymd(d);
+          opt.textContent = formatDateForOption(d);
+          dateSelect.appendChild(opt);
+        });
+
+        if (prev && Array.from(dateSelect.options).some(o=>o.value===prev)){
+          dateSelect.value = prev;
+        } else {
+          dateSelect.value = '';
+        }
+
+        enforceTimeWindows();
+        return;
+      }
+
+      // Fallback: weekend-only logic (original behavior)
+      const now = new Date();
+      const today = startOfDay(now);
+      const day = today.getDay();
+
+      const allowed = [];
+
+      if (day === 6){ // Saturday: show Sat+Sun of current weekend
+        allowed.push(new Date(today));
+        const sun = new Date(today); sun.setDate(sun.getDate()+1);
+        allowed.push(sun);
+      } else if (day === 0){ // Sunday: show current Sunday only (no past Saturday)
+        allowed.push(new Date(today));
+      } else {
+        // Weekday: coming weekend (Sat+Sun)
+        const sat = nextSaturday(today);
+        const sun = new Date(sat); sun.setDate(sun.getDate()+1);
+        allowed.push(sat, sun);
+      }
+
+      // Following weekend (Sat+Sun)
+      const firstWeekendSat = (day === 6) ? new Date(today) : nextSaturday(today);
+      const followSat = new Date(firstWeekendSat); followSat.setDate(followSat.getDate()+7);
+      const followSun = new Date(followSat); followSun.setDate(followSun.getDate()+1);
+      allowed.push(followSat, followSun);
+
+      // Filter: current/future only, within 14 days
+      const max = new Date(today); max.setDate(max.getDate()+14);
+      const finalAllowed = allowed
+        .map(d=>startOfDay(d))
+        .filter(d=>d >= today && d <= max && isWeekend(d))
+        .sort((a,b)=>a-b);
+
+      const prev = dateSelect.value;
+      dateSelect.innerHTML = `<option value="">— Select date —</option>`;
+      finalAllowed.forEach(d=>{
+        const opt = document.createElement('option');
+        opt.value = ymd(d);
+        opt.textContent = formatDateForOption(d);
+        dateSelect.appendChild(opt);
+      });
+
+      if (prev && Array.from(dateSelect.options).some(o=>o.value===prev)){
+        dateSelect.value = prev;
+      } else {
+        dateSelect.value = '';
+      }
+
+      enforceTimeWindows();
+    }
+
+    function enforceTimeWindows(){
+      // Rebuild options for the selected date/mode first
+      updateTimeOptions_();
+
+      const selected = dateSelect && dateSelect.value;
+      if (!selected) return;
+
+      const now = new Date();
+      const isToday = selected === ymd(now);
+      if (!isToday) return;
+
+      const minutesNow = now.getHours()*60 + now.getMinutes();
+
+      function disablePast(selectEl, getStartMinutes){
+        if (!selectEl) return;
+        Array.from(selectEl.options).forEach(opt=>{
+          if (!opt.value) return;
+          const startMin = getStartMinutes(opt);
+          if (startMin <= minutesNow) opt.disabled = true;
+        });
+        if (selectEl.value){
+          const chosen = selectEl.options[selectEl.selectedIndex];
+          if (chosen && chosen.disabled) selectEl.value = '';
+        }
+      }
+
+      // Pickup time (or hidden "time" for delivery)
+      disablePast(timeSelect, (opt)=>{
+        const v = (opt.value || '').trim();
+        const parts = v.split(':').map(Number);
+        if (parts.length<2 || isNaN(parts[0]) || isNaN(parts[1])) return 0;
+        return parts[0]*60 + parts[1];
+      });
+
+      // Delivery visible window select
+      disablePast(deliveryWindowSelect, (opt)=>{
+        const start = opt.dataset.start || '';
+        const parts = start.split(':').map(Number);
+        if (parts.length<2 || isNaN(parts[0]) || isNaN(parts[1])) return 0;
+        return parts[0]*60 + parts[1];
+      });
+    }
+    // ===== End weekend-only date picker/time windows =====
+
+
+    function fmt(n){ return '$' + (Number(n||0)).toFixed(2); }
+
+    let amountTouched = false;
+
+    function addRow(variety, qty){
+      variety = variety || "";
+      qty = qty || 1;
+
+      const tr = document.createElement('tr');
+
+      const tdVar = document.createElement('td');
+      const sel = document.createElement('select');
+      sel.name='itemVariety[]'; sel.required=true;
+      let optionsHtml = '<option value="" disabled ' + (variety ? '' : 'selected') + '>Select…</option>';
+      for (const v in PRICES){
+        optionsHtml += `<option${v===variety ? ' selected' : ''}>${v}</option>`;
+      }
+      sel.innerHTML = optionsHtml;
+      tdVar.appendChild(sel);
+
+      const tdPrice = document.createElement('td');
+      const priceSpan = document.createElement('div');
+      priceSpan.textContent = variety ? fmt(PRICES[variety]) : '$0.00';
+      tdPrice.appendChild(priceSpan);
+
+      const tdQty = document.createElement('td');
+      const qtyInput = document.createElement('input');
+      qtyInput.type='number';
+      qtyInput.name='itemQty[]';
+      qtyInput.min='1';
+      qtyInput.step='1';
+      qtyInput.value=qty;
+      tdQty.appendChild(qtyInput);
+
+      const tdLine = document.createElement('td');
+      const lineSpan = document.createElement('div');
+      lineSpan.textContent='$0.00';
+      tdLine.appendChild(lineSpan);
+
+      const tdDel = document.createElement('td');
+      const delBtn = document.createElement('button');
+      delBtn.type='button';
+      delBtn.className='danger';
+      delBtn.textContent='×';
+      delBtn.title='Remove row';
+      delBtn.onclick = () => { tr.remove(); recalcTotals(); };
+      tdDel.appendChild(delBtn);
+
+      function recalcRow(){
+        const vv = sel.value;
+        const p = PRICES[vv] || 0;
+        const q = Number(qtyInput.value || 0);
+        priceSpan.textContent = fmt(p);
+        lineSpan.textContent = fmt(p*q);
+        recalcTotals();
+      }
+      sel.addEventListener('change', recalcRow);
+      qtyInput.addEventListener('input', recalcRow);
+
+      tr.appendChild(tdVar);
+      tr.appendChild(tdPrice);
+      tr.appendChild(tdQty);
+      tr.appendChild(tdLine);
+      tr.appendChild(tdDel);
+      itemsBody.appendChild(tr);
+      recalcRow();
+    }
+
+    function validLineItems(){
+      const items = [];
+      const rows = itemsBody.querySelectorAll('tr');
+      rows.forEach(tr => {
+        const v = tr.querySelector('select').value;
+        const q = Number(tr.querySelector('input').value || 0);
+        if (v && q>0){
+          const unit = PRICES[v] || 0;
+          items.push({v,q,unit,line:unit*q});
+        }
+      });
+      return items;
+    }
+
+    function recalcTotals(){
+      const items = validLineItems();
+      const subtotal = items.reduce((s,i)=>s+i.line,0);
+      const isDelivery = f.fulfillment.value === 'Delivery';
+      const delivery = isDelivery ? DELIVERY_FEE : 0;
+
+      const advSelected = f.advancePayment.value === 'Yes';
+      const totalQty = items.reduce((s,i)=>s+i.q,0);
+      const advanceDiscount = (advSelected && items.length>0) ? (totalQty * ADVANCE_DISCOUNT_PER_BOX) : 0;
+
+      const preTaxSubtotal = Math.max(0, subtotal + delivery - advanceDiscount);
+      const taxableBase = TAX_ON_DELIVERY ? preTaxSubtotal : Math.max(0, subtotal - advanceDiscount);
+      const tax = TAX_RATE ? +(taxableBase * TAX_RATE).toFixed(2) : 0;
+      const total = +(preTaxSubtotal + tax).toFixed(2);
+
+      let paid = 0;
+      if (f.amount) {
+        if (advSelected) {
+          if (!amountTouched) {
+            paid = total;
+            if (!isNaN(total)) f.amount.value = total.toFixed(2);
+          } else {
+            paid = Number(f.amount.value || 0);
+          }
+        } else {
+          paid = 0;
+          f.amount.value = '';
+          amountTouched = false;
+        }
+      }
+      const due = Math.max(0, +(total - paid).toFixed(2));
+
+      document.getElementById('subtotalBoxes').value   = fmt(subtotal);
+      document.getElementById('deliveryFee').value     = fmt(delivery);
+      document.getElementById('advanceDiscount').value = '- ' + fmt(advanceDiscount);
+      document.getElementById('grandTotal').value      = fmt(total);
+      document.getElementById('balanceDue').value      = fmt(due);
+
+      const showPay = advSelected && items.length>0;
+      if (showPay){
+        paymentFields.classList.remove('hidden');
+      } else {
+        paymentFields.classList.add('hidden');
+        if (f.etransferId) f.etransferId.value='';
+        if (f.paymentDate) f.paymentDate.value='';
+        if (f.paymentTime) f.paymentTime.value='';
+        if (f.receipt) f.receipt.value='';
+      }
+    }
+
+    function syncDeliveryTime(){
+      const isDelivery = f.fulfillment.value === 'Delivery';
+      if (!isDelivery) return;
+      const sel = f.deliveryWindow;
+      if (!sel) return;
+      const opt = sel.options[sel.selectedIndex];
+      if (!opt) { f.time.value=''; return; }
+      const start = opt.getAttribute('data-start');
+      f.time.value = start || '';
+    }
+
+    function modeLabels(){
+      const isDelivery = f.fulfillment.value === 'Delivery';
+
+      if (dateLabelEl) dateLabelEl.innerHTML =
+        (isDelivery ? 'Delivery Date' : 'Pickup Date') + ' <span class="req">*</span>';
+
+      if (timeLabelEl) timeLabelEl.innerHTML =
+        (isDelivery ? 'Delivery Time Window' : 'Pickup Time Window') + ' <span class="req">*</span>';
+
+      if (deliveryAddressWrap) deliveryAddressWrap.classList.toggle('hidden', !isDelivery);
+      if (deliveryWindowWrap) deliveryWindowWrap.classList.toggle('hidden', !isDelivery);
+      if (timeWrap) timeWrap.classList.toggle('hidden', isDelivery);
+
+      // manage required fields
+      if (timeSelect) timeSelect.required = !isDelivery;
+      if (deliveryWindowSelect) deliveryWindowSelect.required = isDelivery;
+
+      const street = document.getElementById('deliveryStreet');
+      const city   = document.getElementById('deliveryCity');
+      const postal = document.getElementById('deliveryPostal');
+      if (street) street.required = isDelivery;
+      if (city) city.required = isDelivery;
+      if (postal) postal.required = isDelivery;
+
+      if (isDelivery) {
+        syncDeliveryTime();
+      } else {
+        if (deliveryWindowSelect) deliveryWindowSelect.value = '';
+      }
+
+      populateAllowedDates();
+      enforceTimeWindows();
+      recalcTotals();
+    }
+
+
+    function requireBasics(){
+      const name = (f.name.value || '').trim();
+      const email = (f.email.value || '').trim();
+      const phone = (f.phone.value || '').trim();
+
+      if (!name) { f.name.focus(); return 'Please enter your full name.'; }
+      if (!email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+        f.email.focus(); return 'Please enter a valid email address.'; }
+      const digits = phone.replace(/\D/g,'');
+      if (digits.length < 10) { f.phone.focus(); return 'Please enter a valid phone number.'; }
+
+      if (!f.date.value) { f.date.focus(); return 'Please choose a pickup/delivery date.'; }
+
+      const isDelivery = f.fulfillment.value === 'Delivery';
+
+      const today = new Date(); today.setHours(0,0,0,0);
+      const chosenDate = new Date(f.date.value + 'T00:00:00');
+      if (chosenDate.getTime() < today.getTime()) {
+        return isDelivery ? 'Delivery date cannot be earlier than today.' :
+                            'Pickup date cannot be earlier than today.';
+      }
+
+      if (isDelivery) {
+        if (!f.deliveryWindow.value) { f.deliveryWindow.focus(); return 'Please select a delivery window.'; }
+        syncDeliveryTime();
+      } else {
+        if (!f.time.value) { f.time.focus(); return 'Please choose a pickup time.'; }
+      }
+
+      if (f.date.value && f.time.value) {
+        const chosen = new Date(f.date.value + 'T' + f.time.value + ':00');
+        const now = new Date();
+        if (chosen.getTime() < now.getTime()) {
+          return isDelivery ? 'Delivery time cannot be in the past.' :
+                              'Pickup time cannot be in the past.';
+        }
+      }
+
+      if (validLineItems().length === 0) {
+        return 'Please add at least one mango variety and a positive quantity.';
+      }
+
+      if (f.advancePayment.value === 'Yes') {
+        const amount = Number(f.amount.value || 0);
+        if (!(amount > 0)) { f.amount.focus(); return 'Please enter the amount you are paying now.'; }
+
+        const ref = (f.etransferId.value || '').trim();
+        if (!ref) {
+          f.etransferId.focus();
+          return 'Please enter the e-Transfer email address.';
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(ref)) {
+          f.etransferId.focus();
+          return 'Please enter a valid email address for e-Transfer ID.';
+        }
+
+        if (!f.paymentDate.value) { f.paymentDate.focus(); return 'Please select the payment date.'; }
+        if (!f.paymentTime.value) { f.paymentTime.focus(); return 'Please select the payment time.'; }
+
+        // --- Payment date/time must not be in the future ---
+        const now3 = new Date();
+        const todayStr = now3.toISOString().slice(0,10);
+        const paymentDateStr = f.paymentDate.value;
+
+        let paymentErrorMsg = '';
+
+        const isFutureDate = paymentDateStr > todayStr;
+        const isToday = paymentDateStr === todayStr;
+
+        // Future DATE -> date error only
+        if (isFutureDate) {
+          f.paymentDate.focus();
+          return 'Payment date cannot be in the future.';
+        }
+
+        // Date is today: check TIME in the future
+        if (isToday) {
+          const paymentDT = new Date(paymentDateStr + 'T' + f.paymentTime.value + ':00');
+          if (paymentDT.getTime() > now3.getTime()) {
+            f.paymentTime.focus();
+            return 'Payment time cannot be in the future.';
+          }
+        }
+
+        // If date is in the past, any time is allowed (no extra checks)
+      }
+      return '';
+    }
+
+    function toLocalISO(dateStr, timeStr){
+      const parts = dateStr.split('-');
+      const y = Number(parts[0]), m = Number(parts[1]), d = Number(parts[2]);
+      const tparts = (timeStr || '00:00').split(':');
+      const hh = Number(tparts[0] || 0), mm = Number(tparts[1] || 0);
+      return new Date(y, m-1, d, hh, mm, 0).toISOString();
+    }
+
+    function show(type, text){
+      if (!text) { msg.textContent=''; msg.className='mini'; return; }
+      msg.className = (type === 'ok') ? 'success' : 'error';
+      msg.textContent = text;
+    }
+
+    addRow();
+
+    addRowBtn.addEventListener('click', ()=>{
+      const rows = itemsBody.querySelectorAll('tr');
+      if (rows.length) {
+        const last = rows[rows.length - 1];
+        const lastVar = last.querySelector('select').value;
+        const lastQty = Number(last.querySelector('input').value || 0);
+        if (!lastVar) {
+          show('err','Please select a variety for the current row before adding another.');
+          last.querySelector('select').focus();
+          return;
+        }
+        if (!(lastQty > 0)) {
+          show('err','Quantity must be at least 1 for the current row.');
+          last.querySelector('input').focus();
+          return;
+        }
+      }
+      show('', '');
+      addRow();
+    });
+
+    document.querySelectorAll('input[name="fulfillment"]').forEach(r =>
+      r.addEventListener('change', modeLabels)
+    );
+    document.querySelectorAll('input[name="advancePayment"]').forEach(r =>
+      r.addEventListener('change', ()=>{
+        amountTouched = false;
+        recalcTotals();
+      })
+    );
+
+    if (f.deliveryWindow) {
+      f.deliveryWindow.addEventListener('change', syncDeliveryTime);
+    }
+    if (f.date) {
+      f.date.addEventListener('change', ()=>{ enforceTimeWindows(); if (f.fulfillment.value === 'Delivery') syncDeliveryTime(); });
+    }
+    if (f.amount) {
+      f.amount.addEventListener('input', ()=>{
+        amountTouched = true;
+        recalcTotals();
+      });
+    }
+
+    (async ()=>{
+      await loadLiveConfig();
+      // Auto-refresh config so Google Sheet changes show up without page reload
+      setInterval(async ()=>{
+        try {
+          await loadLiveConfig();
+          enforceTimeWindows();
+        } catch(e){}
+      }, 90000);
+
+      modeLabels();
+      populateAllowedDates();
+      enforceTimeWindows();
+      recalcTotals();
+    })();
+
+    
+// ---------------- Manage Booking (search, update, cancel) ----------------
+let LOADED_BOOKING = null;
+let SEARCH_KEY = '';
+
+const searchInput = document.getElementById('searchQuery');
+const btnSearch   = document.getElementById('btnSearch');
+const searchMsg   = document.getElementById('searchMsg');
+const existingCard = document.getElementById('existingCard');
+const existingLockMsg = document.getElementById('existingLockMsg');
+const cancelBtn   = document.getElementById('cancelBtn');
+const msgMini     = document.getElementById('msg');
+
+const editArea    = document.getElementById('editArea');
+const footerBar   = document.getElementById('footerBar');
+
+function setBox(el, text, type){
+  if (!el) return;
+  el.style.display = text ? 'block' : 'none';
+  el.className = type ? type : '';
+  el.textContent = text || '';
+}
+
+function setMini(text, type){
+  if (!msgMini) return;
+  msgMini.className = type ? type : 'mini';
+  msgMini.textContent = text || '';
+}
+
+function fmtMoney(n){ return '$' + Number(n||0).toFixed(2); }
+
+function applyExistingOption(selectEl, value, label){
+  if (!selectEl) return;
+  const v = String(value||'');
+  if (!v) return;
+  const opts = Array.from(selectEl.options || []);
+  const found = opts.find(o => String(o.value) === v);
+  if (!found){
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = label || ('Existing: ' + v);
+    selectEl.insertBefore(o, selectEl.firstChild);
+  }
+  selectEl.value = v;
+  selectEl.dispatchEvent(new Event('change', { bubbles:true }));
+}
+
+function normalizeWindow(s){
+  return String(s||'').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
+}
+
+function setExistingSummary(b){
+  existingCard.style.display = 'block';
+  document.getElementById('exRef').value = b.referenceNumber || '';
+  document.getElementById('exInv').value = b.invoiceNumber || '';
+  document.getElementById('exStatus').value = b.status || '';
+  document.getElementById('exName').value = b.name || '';
+  document.getElementById('exEmail').value = b.email || '';
+  document.getElementById('exPhone').value = b.phone || '';
+  document.getElementById('exFulfillment').value = b.fulfillment || '';
+  document.getElementById('exDate').value = b.dateYMD || '';
+  document.getElementById('exTime').value = (b.fulfillment === 'Delivery' ? (b.deliveryWindow || '') : (b.time || ''));
+  document.getElementById('exTotal').value = fmtMoney(b.total);
+  document.getElementById('exPaid').value = fmtMoney(b.paid);
+  document.getElementById('exBalance').value = fmtMoney(b.balanceDue);
+  document.getElementById('exInvoiceLink').value = b.invoiceUrl || '';
+  document.getElementById('exReceiptLink').value = b.receiptUrl || '';
+
+  // Payment history
+  const ph = Array.isArray(b.paymentHistory) ? b.paymentHistory : [];
+  const box = document.getElementById('paymentHistoryBox');
+  if (box){
+    if (ph.length){
+      box.style.display = 'block';
+      const rows = ph.map((p,i)=>(
+        `<tr>
+          <td style="padding:6px 0">${i+1}</td>
+          <td style="padding:6px 0">${(p.date||'')}${p.time?(' '+p.time):''}</td>
+          <td style="padding:6px 0">${p.etransferId||''}</td>
+          <td style="padding:6px 0;text-align:right">${fmtMoney(p.amount||0)}</td>
+        </tr>`
+      )).join('');
+      box.innerHTML = `
+        <div style="font-weight:700;margin-bottom:6px">Previous payments</div>
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr>
+              <th style="text-align:left;border-bottom:1px solid #eee;padding:6px 0">#</th>
+              <th style="text-align:left;border-bottom:1px solid #eee;padding:6px 0">Date</th>
+              <th style="text-align:left;border-bottom:1px solid #eee;padding:6px 0">e-Transfer</th>
+              <th style="text-align:right;border-bottom:1px solid #eee;padding:6px 0">Amount</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } else {
+      box.style.display = 'none';
+      box.innerHTML = '';
+    }
+  }
+}
+
+function setFormFromBooking(b){
+  // Customer
+  f.customerName.value = b.name || '';
+  f.customerEmail.value = b.email || '';
+  f.customerPhone.value = b.phone || '';
+
+  // Fulfillment
+  const fulfill = (b.fulfillment === 'Delivery') ? 'Delivery' : 'Pickup';
+  document.querySelectorAll('input[name="fulfillment"]').forEach(r => { r.checked = (r.value === fulfill); });
+  modeLabels();
+  populateAllowedDates();
+  enforceTimeWindows();
+
+  // Date
+  applyExistingOption(document.getElementById('dateSelect'), b.dateYMD, 'Existing: ' + b.dateYMD);
+
+  // Time / Window
+  if (fulfill === 'Delivery'){
+    // ensure window exists (normalize dash)
+    const sel = document.getElementById('deliveryWindow');
+    const desired = normalizeWindow(b.deliveryWindow || '');
+    const opts = Array.from(sel.options||[]);
+    const found = opts.find(o => normalizeWindow(o.value) === desired || normalizeWindow(o.textContent) === desired);
+    if (!found && desired){
+      const o = document.createElement('option');
+      o.value = b.deliveryWindow;
+      o.textContent = 'Existing: ' + b.deliveryWindow;
+      sel.insertBefore(o, sel.firstChild);
+    }
+    sel.value = found ? found.value : (b.deliveryWindow || '');
+    sel.dispatchEvent(new Event('change', { bubbles:true }));
+  } else {
+    applyExistingOption(document.getElementById('timeSelect'), b.time, 'Existing: ' + b.time);
+  }
+
+  // Address
+  if (b.fulfillment === 'Delivery'){
+    f.deliveryStreet.value = b.deliveryStreet || '';
+    f.deliveryUnit.value = b.deliveryUnit || '';
+    f.deliveryCity.value = b.deliveryCity || '';
+    f.deliveryPostal.value = b.deliveryPostal || '';
+    f.deliveryBuzzer.value = b.deliveryBuzzer || '';
+  }
+
+  // Line items
+  try{
+    const items = Array.isArray(b._rawFields?.['itemVariety[]']) ? b._rawFields['itemVariety[]'].map((v,i)=>({ variety:v, qty: Number((b._rawFields['itemQty[]']||[])[i]||0) })) : [];
+    // Clear current rows then add
+    const tbody = document.querySelector('#itemsBody');
+    if (tbody){
+      tbody.innerHTML = '';
+      (items.length ? items : [{variety:'',qty:1}]).forEach(it=>{
+        addRow(it.variety, it.qty);
+      });
+    }
+  }catch(e){}
+
+  // Advance payment
+  const adv = (b.advancePayment === 'Yes') ? 'Yes' : 'No';
+  document.querySelectorAll('input[name="advancePayment"]').forEach(r => { r.checked = (r.value === adv); });
+  toggleAdvanceDetails();
+
+  // Do not force new payment; leave blank
+  f.amountPayingNow.value = '';
+  f.etransferId.value = '';
+  f.paymentDate.value = '';
+  f.paymentTime.value = '';
+  if (f.receipt) f.receipt.value = '';
+
+  recalcTotals();
+}
+
+function toggleAllInputs(disabled){
+  // Keep search box usable always
+  document.querySelectorAll('input, select, textarea, button').forEach(el=>{
+    if (el.id === 'searchQuery' || el.id === 'btnSearch') return;
+    if (el.closest('#manageCard')) return;
+    if (el === searchInput || el === btnSearch) return;
+    if (el.id === 'cancelBtn' || el.id === 'submitBtn') {
+      el.disabled = disabled;
+      return;
+    }
+    if (el.id === 'searchQuery') return;
+    // keep existing summary inputs read-only but not disabled
+    if (el.closest('#existingCard')) return;
+    el.disabled = disabled;
+  });
+  cancelBtn.disabled = disabled;
+  document.getElementById('submitBtn').disabled = disabled;
+}
+
+
+async function apiPost(action, payload){
+  // Manage actions only (updateBooking/cancelBooking)
+  return apiPostManage(action, payload);
+}
+
+function readFileAsB64(file){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('File read failed'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function buildUpdatePayload(){
+  const fulfill = document.querySelector('input[name="fulfillment"]:checked')?.value || 'Pickup';
+  const adv = document.querySelector('input[name="advancePayment"]:checked')?.value || 'No';
+
+  const itemVariety = Array.from(document.querySelectorAll('select[name="itemVariety[]"]')).map(el=>el.value);
+  const itemQty = Array.from(document.querySelectorAll('input[name="itemQty[]"]')).map(el=>el.value);
+
+  const payload = {
+    referenceNumber: LOADED_BOOKING.referenceNumber,
+    searchKey: SEARCH_KEY,
+    fulfillment: fulfill,
+    date: document.getElementById('dateSelect')?.value || '',
+    time: document.getElementById('timeSelect')?.value || '',
+    deliveryWindow: document.getElementById('deliveryWindow')?.value || '',
+    advancePayment: adv,
+    notes: f.notes?.value || '',
+    deliveryStreet: f.deliveryStreet?.value || '',
+    deliveryUnit: f.deliveryUnit?.value || '',
+    deliveryCity: f.deliveryCity?.value || '',
+    deliveryPostal: f.deliveryPostal?.value || '',
+    deliveryBuzzer: f.deliveryBuzzer?.value || '',
+    'itemVariety[]': itemVariety,
+    'itemQty[]': itemQty
+  };
+
+  // New payment (optional, only when advance payment selected)
+  if (adv === 'Yes'){
+    payload.amountPayingNow = f.amountPayingNow?.value || '';
+    payload.etransferId = f.etransferId?.value || '';
+    payload.paymentDate = f.paymentDate?.value || '';
+    payload.paymentTime = f.paymentTime?.value || '';
+    const file = f.receipt?.files?.[0];
+    if (file){
+      const dataUrl = await readFileAsB64(file);
+      payload.receipt_b64 = String(dataUrl).split(',')[1] || '';
+      payload.receipt_type = file.type || 'application/octet-stream';
+      payload.receipt_name = file.name || 'receipt';
+    }
+  }
+  return payload;
+}
+
+btnSearch.addEventListener('click', async ()=>{
+  const q = String(searchInput.value||'').trim();
+  setBox(searchMsg, '', '');
+  setMini('', 'mini');
+  existingCard.style.display = 'none';
+  if (editArea) editArea.classList.add('hidden');
+  if (footerBar) footerBar.classList.add('hidden');
+  setBox(existingLockMsg, '', '');
+  LOADED_BOOKING = null;
+  SEARCH_KEY = '';
+  toggleAllInputs(true);
+
+  if (!q){
+    setBox(searchMsg, 'Please enter Reference # or Email or Phone.', 'error');
+    return;
+  }
+
+  try{
+    btnSearch.disabled = true;
+    setBox(searchMsg, 'Searching...', 'success');
+    const data = await apiGet('searchBooking', { q });
+    if (!data || !data.ok){
+      setBox(searchMsg, (data && data.error) ? data.error : 'Booking not found.', 'error');
+      btnSearch.disabled = false;
+      return;
+    }
+    LOADED_BOOKING = data.booking;
+    SEARCH_KEY = q;
+
+    setExistingSummary(LOADED_BOOKING);
+    setFormFromBooking(LOADED_BOOKING);
+
+    if (data.lock && data.lock.canEdit === false){
+      setBox(existingLockMsg, data.lock.message || 'Sorry, order cannot be changed. We require minimum of 2 days advance notice to update the order.', 'error');
+      toggleAllInputs(true);
+      if (editArea) editArea.classList.add('hidden');
+      if (footerBar) footerBar.classList.add('hidden');
+    } else {
+      setBox(existingLockMsg, '', '');
+      toggleAllInputs(false);
+      if (editArea) editArea.classList.remove('hidden');
+      if (footerBar) footerBar.classList.remove('hidden');
+    }
+
+    if (data.lock && data.lock.canEdit === false){
+      // keep the lock message only (no extra banner)
+      setBox(searchMsg, '', '');
+    } else {
+      setBox(searchMsg, 'Booking loaded. You can update details below.', 'success');
+    }
+  } catch(e){
+    setBox(searchMsg, (e && e.message) ? e.message : 'Server error while searching. Please confirm your Web App URL is correct and deployed as /exec.', 'error');
+  } finally {
+    btnSearch.disabled = false;
+  }
+});
+
+// Prevent booking creation
+f.addEventListener('submit', (e)=>{ e.preventDefault(); });
+
+document.getElementById('submitBtn').addEventListener('click', async ()=>{
+  setMini('', 'mini');
+  if (!LOADED_BOOKING){
+    setMini('Please search and load a booking first.', 'error');
+    return;
+  }
+  try{
+    document.getElementById('submitBtn').disabled = true;
+    cancelBtn.disabled = true;
+    setMini('Updating booking...', 'success');
+
+    const payload = await buildUpdatePayload();
+    const data = await apiPost('updateBooking', payload);
+
+    if (data && data.locked){
+      setMini(data.message || 'Sorry, order cannot be changed (need 2 days notice).', 'error');
+      return;
+    }
+
+    if (!data || !data.ok){
+      setMini((data && data.error) ? data.error : 'Update failed.', 'error');
+      return;
+    }
+
+    setMini('Thank you for your business. Your booking has been updated successfully.', 'success');
+
+    // Refresh display (re-search)
+    btnSearch.click();
+  } catch(e){
+    setMini('Update failed. Please try again.', 'error');
+  } finally {
+    document.getElementById('submitBtn').disabled = false;
+    cancelBtn.disabled = false;
+  }
+});
+
+cancelBtn.addEventListener('click', async ()=>{
+  setMini('', 'mini');
+  if (!LOADED_BOOKING){
+    setMini('Please search and load a booking first.', 'error');
+    return;
+  }
+  if (!confirm('Are you sure you want to cancel this booking?')) return;
+
+  try{
+    document.getElementById('submitBtn').disabled = true;
+    cancelBtn.disabled = true;
+    setMini('Cancelling booking...', 'success');
+
+    const data = await apiPost('cancelBooking', { referenceNumber: LOADED_BOOKING.referenceNumber, searchKey: SEARCH_KEY });
+
+    if (data && data.locked){
+      setMini(data.message || 'Sorry, order cannot be cancelled (need 2 days notice).', 'error');
+      return;
+    }
+    if (!data || !data.ok){
+      setMini((data && data.error) ? data.error : 'Cancel failed.', 'error');
+      return;
+    }
+
+    setMini('Thank you for your business. Your booking has been cancelled successfully.', 'success');
+    // Refresh summary
+    btnSearch.click();
+  } catch(e){
+    setMini('Cancel failed. Please try again.', 'error');
+  } finally {
+    document.getElementById('submitBtn').disabled = false;
+    cancelBtn.disabled = false;
+  }
+});
+
+    
+    let submitTimeout = null;
+    let receivedReply = false;
+
+    let pollTimer = null;
+    let pollStartTs = 0;
+
+    
+    let currentRequestId = null;
+function makeRequestId(){
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return 'req_' + Date.now() + '_' + Math.random().toString(16).slice(2);
+    }
+
+    
+function stopPoll(){
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    function jsonpCheckConfirm(urlBase, requestId){
+      return new Promise((resolve, reject) => {
+        const cbName = '__mangoConfirmCb_' + Math.random().toString(36).slice(2);
+        const s = document.createElement('script');
+        const cleanup = () => {
+          try{ delete window[cbName]; } catch(e){}
+          if (s && s.parentNode) s.parentNode.removeChild(s);
+        };
+        window[cbName] = (data) => { cleanup(); resolve(data); };
+        s.onerror = () => { cleanup(); reject(new Error('JSONP load failed')); };
+        s.src = urlBase + '?action=checkConfirm&requestId=' + encodeURIComponent(requestId) +
+                '&callback=' + encodeURIComponent(cbName) + '&_t=' + Date.now();
+        document.body.appendChild(s);
+      });
+    }
+
+    function startConfirmPoll(requestId){
+      stopPoll();
+      pollStartTs = Date.now();
+      const urlBase = (WEB_APP_URL || '').split('?')[0]; // ensure no action params
+      pollTimer = setInterval(() => {
+        try {
+        if (receivedReply) { stopPoll(); return; }
+        const elapsed = Date.now() - pollStartTs;
+        if (elapsed > 8000) { // 25s timeout
+          stopPoll();
+          // Fallback: show Thank You anyway (backend already processed in most cases)
+          const footer = document.querySelector('.footer-bar');
+          if (footer) footer.style.display = 'none';
+          card.innerHTML =
+            '<div class="thankyou-box">' +
+              '<h2>Thank you for your order! 🥭</h2>' +
+              '<p>We received your booking. If you don\'t see the confirmation email, please check your spam folder or contact us.</p>' +
+              '<img src="images/mango-kids-juice.png" alt="Kids happily enjoying mango juice" class="thankyou-img">' +
+            '</div>';
+          return;
+        }
+        jsonpCheckConfirm(urlBase, requestId).then(j => {
+          if (j && j.ok && j.confirmed){
+            receivedReply = true;
+            if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
+            stopPoll();
+            const footer = document.querySelector('.footer-bar');
+            if (footer) footer.style.display = 'none';
+            card.innerHTML =
+              '<div class="thankyou-box">' +
+                '<h2>Thank you for your order! 🥭</h2>' +
+                '<p>Your booking has been received. A confirmation email with your invoice has been sent.</p>' +
+                '<img src="images/mango-kids-juice.png" alt="Kids happily enjoying mango juice" class="thankyou-img">' +
+              '</div>';
+          }
+        }).catch(() => {
+          // ignore and keep polling
+        });
+        } catch (e) { console.error(e); }
+      }, 900);
+    }
+
+// Listen for Apps Script reply (iframe -> postMessage)
+    
+    // ===== Address Autocomplete (Google Places) =====
+    // This does NOT change what is submitted to Apps Script.
+    // It only auto-fills the existing deliveryStreet/deliveryCity/deliveryPostal fields.
+    function initAddressAutocomplete(){
+      try{
+        if (!window.google || !google.maps || !google.maps.places) return;
+        const input = document.getElementById('deliveryAddressSearch');
+        if (!input) return;
+
+        const ac = new google.maps.places.Autocomplete(input, {
+          types: ['address'],
+          componentRestrictions: { country: ['ca'] },
+          fields: ['address_components','formatted_address']
+        });
+
+        function getComp(place, type){
+          const comps = (place && place.address_components) ? place.address_components : [];
+          const hit = comps.find(c => Array.isArray(c.types) && c.types.indexOf(type) >= 0);
+          return hit ? hit.long_name : '';
+        }
+
+        ac.addListener('place_changed', () => {
+          const place = ac.getPlace();
+          if (!place || !place.address_components) return;
+
+          const streetNumber = getComp(place, 'street_number');
+          const route        = getComp(place, 'route');
+          const subpremise   = getComp(place, 'subpremise'); // apt/unit (sometimes)
+          const locality     = getComp(place, 'locality') || getComp(place, 'postal_town') || getComp(place, 'sublocality');
+          const postal       = getComp(place, 'postal_code');
+
+          const streetField = document.getElementById('deliveryStreet');
+          const unitField   = document.getElementById('deliveryUnit');
+          const cityField   = document.getElementById('deliveryCity');
+          const postalField = document.getElementById('deliveryPostal');
+
+          const streetLine = [streetNumber, route].filter(Boolean).join(' ').trim();
+
+          if (streetField && streetLine) streetField.value = streetLine;
+          if (cityField && locality) cityField.value = locality;
+          if (postalField && postal) postalField.value = postal;
+
+          // Only auto-fill unit if your unit field is currently empty
+          if (unitField && subpremise && !String(unitField.value||'').trim()){
+            unitField.value = subpremise;
+          }
+        });
+      }catch(_e){}
+    }
+
+window.addEventListener('message', (ev) => {
+      let data = ev.data;
+      // Apps Script iframe may send an object OR a JSON string; accept both.
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch (e) { return; }
+      }
+      if (!data || typeof data !== 'object') return;
+      if (!('ok' in data)) return;
+
+      receivedReply = true;
+
+      if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
+
+      if (data.ok) {
+        const footer = document.querySelector('.footer-bar');
+        if (footer) footer.style.display = 'none';
+
+        card.innerHTML =
+          '<div class="thankyou">' +
+            '<h2>Thank you for your order! 🥭</h2>' +
+            '<p>Your booking has been received. A confirmation email with your invoice has been sent.</p>' +
+            '<img src="images/mango-kids-juice.png" ' +
+              'alt="Kids happily enjoying mango juice" class="thankyou-img">' +
+          '</div>';
+      } else {
+        submitBtn.disabled = false;
+        show('err', 'Server error: ' + (data.error || 'Unknown error'));
+        console.log('Server response:', data);
+      }
+    });
+
+    function submitViaIframe() {
+      submitBtn.disabled = true;
+      show('ok', 'Submitting…');
+
+      // reset for this submission
+      receivedReply = false;
+
+      // action must be the /exec URL
+      f.action = POST_URL;
+
+      // safety timeout if no message returns
+      if (submitTimeout) clearTimeout(submitTimeout);
+      submitTimeout = setTimeout(() => {
+        submitBtn.disabled = false;
+        show('err', 'Network error: No response from server. Please confirm the Apps Script web app is deployed as /exec and access is set to Anyone.');
+      }, 60000);
+
+      // Fallback: if the iframe loads but postMessage is blocked by the browser,
+      // treat it as submitted (backend already processed if you received emails/invoice).
+      const iframe = document.getElementById('mango_hidden_iframe');
+      const previewNote = document.getElementById('server_preview_note');
+      const onLoad = () => {
+        // Only fallback if we haven't received a reply message.
+        if (!receivedReply) {
+          if (submitTimeout) { clearTimeout(submitTimeout); submitTimeout = null; }
+          submitBtn.disabled = false;
+          /* confirmation from iframe may be blocked by browser; we rely on confirmation polling instead */
+// Reveal the iframe so you can SEE the server error/sign-in page if postMessage is blocked
+          if (iframe) {
+            iframe.classList.remove('hidden');
+            iframe.style.display = 'block';
+            iframe.style.width = '100%';
+            iframe.style.height = '360px';
+            iframe.style.border = '1px solid #f0b2aa';
+            iframe.style.borderRadius = '12px';
+            iframe.style.marginTop = '10px';
+          }
+          if (previewNote) previewNote.classList.remove('hidden');
+        }
+        iframe.removeEventListener('load', onLoad);
+      };
+      if (iframe) {
+        iframe.removeEventListener('load', onLoad);
+        iframe.addEventListener('load', onLoad, { once: true });
+      }
+
+      if (currentRequestId) { startConfirmPoll(currentRequestId); }
+
+      f.submit();
+    }
+
+  </script>
+
+  <!-- Google Places API (Address Autocomplete)
+       1) Replace YOUR_GOOGLE_MAPS_API_KEY below
+       2) Make sure "Places API" is enabled for the key
+  -->
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQcPWPhpc_Dlr-d1RWnyOU7Srft-zPZ2o&libraries=places&callback=initAddressAutocomplete"></script>
+
+  <iframe id="manage_hidden_iframe" name="manage_hidden_iframe" class="hidden" title="hidden manage frame"></iframe>
+  <form id="manage_hidden_form" class="hidden" target="manage_hidden_iframe" method="POST" action="">
+    <input type="hidden" name="manageAction" value="">
+    <input type="hidden" name="payload" value="">
+    <input type="hidden" name="referenceNumber" value="">
+    <input type="hidden" name="searchKey" value="">
+  </form>
+</body>
+</html>
