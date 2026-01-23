@@ -833,7 +833,7 @@ label{
     </div>
   <script>
     const WEB_APP_URL =
-      "https://script.google.com/macros/s/AKfycbx32jI9-2nb4X0VJyf4OuAPjRBtdaHNpVdnMLDCSHtTiawZD4TbyLRReKqSr0z_2NykVw/exec";
+      "https://script.google.com/macros/s/AKfycbzmGyWGjKSxM3NtNjizd_pQJ__KoOXvhLC6Sgsd-q7h7Ri4DKbtHTvdFCAeA796da8WvQ/exec";
 
     // Use CONFIG_URL for GET (can include ?action=...), but ALWAYS post to base /exec
     const CONFIG_URL = WEB_APP_URL;
@@ -1816,13 +1816,6 @@ function toggleAllInputs(disabled){
   document.getElementById('submitBtn').disabled = disabled;
 }
 
-async function apiGet(action, params){
-  const u = new URL(WEB_APP_URL);
-  u.searchParams.set('action', action);
-  Object.keys(params||{}).forEach(k=> u.searchParams.set(k, params[k]));
-  const resp = await fetch(u.toString(), { method:'GET' });
-  return resp.json();
-}
 
 async function apiPost(action, payload){
   // Manage actions only (updateBooking/cancelBooking)
@@ -1931,7 +1924,7 @@ btnSearch.addEventListener('click', async ()=>{
       setBox(searchMsg, 'Booking loaded. You can update details below.', 'success');
     }
   } catch(e){
-    setBox(searchMsg, 'Failed to fetch. Please confirm your Web App URL is correct and deployed as /exec.', 'error');
+    setBox(searchMsg, (e && e.message) ? e.message : 'Server error while searching. Please confirm your Web App URL is correct and deployed as /exec.', 'error');
   } finally {
     btnSearch.disabled = false;
   }
