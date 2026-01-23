@@ -516,7 +516,6 @@ label{
   </style>
 </head>
 <body>
-  <iframe id="bridgeFrame" name="bridgeFrame" style="display:none;width:0;height:0;border:0"></iframe>
   <!-- subtle animated mango emojis -->
   <div class="mango-float mango-float-1">🥭</div>
   <div class="mango-float mango-float-2">🥭</div>
@@ -834,99 +833,80 @@ label{
     </div>
   <script>
     const WEB_APP_URL =
-
-// ===== Bridge messaging (avoids CORS on GitHub Pages) =====
-function bridgeCallGET(op, params){
-  return new Promise((resolve, reject)=>{
-    const msgId = 'm' + Date.now() + '_' + Math.random().toString(16).slice(2);
-    const origin = window.location.origin;
-    const u = new URL(WEB_APP_URL);
-    u.searchParams.set('action','bridge');
-    u.searchParams.set('op', op);
-    u.searchParams.set('msgId', msgId);
-    u.searchParams.set('origin', origin);
-    Object.keys(params||{}).forEach(k=>{
-      if (params[k] === undefined || params[k] === null) return;
-      u.searchParams.set(k, String(params[k]));
-    });
-
-    const frame = document.getElementById('bridgeFrame');
-    let done = false;
-
-    function onMsg(ev){
-      const okOrigin = typeof ev.origin === 'string' && (ev.origin.includes('googleusercontent.com') || ev.origin.includes('script.google.com'));
-      if (!okOrigin) return;
-      const data = ev.data;
-      if (!data || data.msgId !== msgId) return;
-      done = true;
-      window.removeEventListener('message', onMsg);
-      resolve((data && data.payload) ? data.payload : null);
-    }
-
-    window.addEventListener('message', onMsg);
-    frame.src = u.toString();
-
-    setTimeout(()=>{
-      if (done) return;
-      window.removeEventListener('message', onMsg);
-      reject(new Error('Bridge timeout'));
-    }, 15000);
-  });
-}
-
-function bridgeCallPOST(op, payloadObj){
-  return new Promise((resolve, reject)=>{
-    const msgId = 'p' + Date.now() + '_' + Math.random().toString(16).slice(2);
-    const origin = window.location.origin;
-
-    let done = false;
-    function onMsg(ev){
-      const okOrigin = typeof ev.origin === 'string' && (ev.origin.includes('googleusercontent.com') || ev.origin.includes('script.google.com'));
-      if (!okOrigin) return;
-      const data = ev.data;
-      if (!data || data.msgId !== msgId) return;
-      done = true;
-      window.removeEventListener('message', onMsg);
-      resolve((data && data.payload) ? data.payload : null);
-    }
-    window.addEventListener('message', onMsg);
-
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = WEB_APP_URL;
-    form.target = 'bridgeFrame';
-    awareAppend(form,'action','bridge');
-    awareAppend(form,'op', op);
-    awareAppend(form,'msgId', msgId);
-    awareAppend(form,'origin', origin);
-    awareAppend(form,'payload', JSON.stringify(payloadObj||{}));
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
-
-    setTimeout(()=>{
-      if (done) return;
-      window.removeEventListener('message', onMsg);
-      reject(new Error('Bridge timeout'));
-    }, 20000);
-  });
-
-  function awareAppend(form, name, value){
-    const inp = document.createElement('input');
-    inp.type = 'hidden';
-    inp.name = name;
-    inp.value = value;
-    form.appendChild(inp);
-  }
-}
-// =========================================================
-      "https://script.google.com/macros/s/AKfycbwkgT_CYHDD1FzjDhKuGhz1oJ0hu76WBhBT0s9tq3cW5zyTduNVIk0vrHZXbLzsfix5FA/exec";
+      "https://script.google.com/macros/s/AKfycbx32jI9-2nb4X0VJyf4OuAPjRBtdaHNpVdnMLDCSHtTiawZD4TbyLRReKqSr0z_2NykVw/exec";
 
     // Use CONFIG_URL for GET (can include ?action=...), but ALWAYS post to base /exec
     const CONFIG_URL = WEB_APP_URL;
     const POST_URL = String(WEB_APP_URL).split('?')[0];
 
-    let PRICES = {
+    
+    // -------- GitHub Pages (no CORS) helpers --------
+    function jsonpGet(action, params){
+      return new Promise((resolve, reject)=>{
+        const cb = '__jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
+        const u = new URL(CONFIG_URL);
+        u.searchParams.set('action', action);
+        u.searchParams.set('cb', cb);
+        Object.keys(params||{}).forEach(k=> u.searchParams.set(k, params[k]));
+        // cache-bust
+        u.searchParams.set('_ts', String(Date.now()));
+
+        window[cb] = (data) => {
+          try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+          resolve(data);
+        };
+
+        const script = document.createElement('script');
+        script.src = u.toString();
+        script.async = true;
+        script.onerror = () => {
+          try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
+          if (script && script.parentNode) script.parentNode.removeChild(script);
+          reject(new Error('Failed to load from server. Please confirm your Web App URL is correct and deployed as /exec.'));
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    async function apiGet(action, params){
+      return jsonpGet(action, params);
+    }
+
+    // POST via hidden iframe + postMessage (avoids CORS)
+    function apiPostManage(manageAction, payload){
+      return new Promise((resolve, reject)=>{
+        const form = document.getElementById('manage_hidden_form');
+        const iframe = document.getElementById('manage_hidden_iframe');
+        if (!form || !iframe) return reject(new Error('Internal error: missing hidden form/iframe'));
+
+        const handler = (ev) => {
+          let data = ev.data;
+          if (typeof data === 'string') { try{ data = JSON.parse(data); }catch(_e){} }
+          if (!data || typeof data !== 'object' || !('ok' in data)) return;
+          window.removeEventListener('message', handler);
+          if (data.ok) resolve(data);
+          else reject(new Error(data.error || 'Server error'));
+        };
+        window.addEventListener('message', handler);
+
+        // populate hidden fields
+        form.action = POST_URL; // must be base /exec
+        form.querySelector('input[name="manageAction"]').value = manageAction;
+        form.querySelector('input[name="payload"]').value = JSON.stringify(payload || {});
+        form.querySelector('input[name="referenceNumber"]').value = (payload && (payload.referenceNumber||payload.ref)) ? (payload.referenceNumber||payload.ref) : '';
+        form.querySelector('input[name="searchKey"]').value = (payload && (payload.searchKey||payload.q||payload.token)) ? (payload.searchKey||payload.q||payload.token) : '';
+
+        form.submit();
+
+        setTimeout(()=>{
+          window.removeEventListener('message', handler);
+          reject(new Error('No response from server. Please confirm your Apps Script web app is deployed as /exec and access is set to Anyone.'));
+        }, 30000);
+      });
+    }
+    // -----------------------------------------------
+let PRICES = {
       "Alphonso (Apoos)":50,
       "Kesar":40,
       "Badami":35,
@@ -948,6 +928,8 @@ function bridgeCallPOST(op, payloadObj){
 
     async function loadLiveConfig(){
       try{
+        const u = new URL(CONFIG_URL);
+        u.searchParams.set('action','getConfig');
         const data = await apiGet('getConfig', {});
         if (!data || !data.ok) return;
 
@@ -1834,16 +1816,18 @@ function toggleAllInputs(disabled){
   document.getElementById('submitBtn').disabled = disabled;
 }
 
-async function apiGet(action, params={}){
-  return await bridgeCallGET(action, params);
+async function apiGet(action, params){
+  const u = new URL(WEB_APP_URL);
+  u.searchParams.set('action', action);
+  Object.keys(params||{}).forEach(k=> u.searchParams.set(k, params[k]));
+  const resp = await fetch(u.toString(), { method:'GET' });
+  return resp.json();
 }
 
-
-async function apiPost(action, payload={}){
-  return await bridgeCallPOST(action, payload);
+async function apiPost(action, payload){
+  // Manage actions only (updateBooking/cancelBooking)
+  return apiPostManage(action, payload);
 }
-
-
 
 function readFileAsB64(file){
   return new Promise((resolve, reject)=>{
@@ -2245,5 +2229,13 @@ window.addEventListener('message', (ev) => {
        2) Make sure "Places API" is enabled for the key
   -->
   <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQcPWPhpc_Dlr-d1RWnyOU7Srft-zPZ2o&libraries=places&callback=initAddressAutocomplete"></script>
+
+  <iframe id="manage_hidden_iframe" name="manage_hidden_iframe" class="hidden" title="hidden manage frame"></iframe>
+  <form id="manage_hidden_form" class="hidden" target="manage_hidden_iframe" method="POST" action="">
+    <input type="hidden" name="manageAction" value="">
+    <input type="hidden" name="payload" value="">
+    <input type="hidden" name="referenceNumber" value="">
+    <input type="hidden" name="searchKey" value="">
+  </form>
 </body>
 </html>
