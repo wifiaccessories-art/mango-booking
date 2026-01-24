@@ -1,12 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- IMPORTANT:
-       1) Set WEB_APP_URL below to YOUR Apps Script Web App URL that ends with /exec
-       2) Then upload this folder to GitHub Pages (manage-booking/index.html)
-  -->
   <meta charset="utf-8" />
-  <title>Mango Order Booking</title>
+  <title>Manage Booking</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root{
@@ -532,9 +528,7 @@ label{
           <div class="emoji">🥭</div>
           <div class="header-text">
             <h1>Manage Booking</h1>
-
-  
-<p>Fresh imported mango boxes – book your pickup or delivery slot in a few easy steps.</p>
+            <p>Fresh imported mango boxes – book your pickup or delivery slot in a few easy steps.</p>
           </div>
           <div class="header-right">
             <span><strong>Season Special</strong></span>
@@ -547,60 +541,124 @@ label{
       </header>
 
       <main>
+        
+  <!-- =================== MANAGE BOOKING SEARCH =================== -->
+  <section class="card" style="margin-top:18px">
+    <h2 style="margin:0 0 8px 0">Find your booking</h2>
+    <p class="muted" style="margin-top:0">Search using <b>Reference #</b> OR <b>Email</b> OR <b>Phone</b>.</p>
 
-  <div class="card" id="manageCard" style="margin-top:16px">
-      <h2 style="margin:0 0 10px">Find your booking</h2>
-      <p class="muted" style="margin-top:0">Search using <strong>Reference #</strong> OR <strong>Email</strong> OR <strong>Phone</strong>.</p>
-      <div class="grid2">
-        <div>
-          <label for="searchQuery">Reference # / Email / Phone</label>
-          <input id="searchQuery" type="text" placeholder="e.g. 3949 or customer@email.com or 647..." />
-        </div>
-        <div style="display:flex;align-items:flex-end;gap:10px">
-          <button type="button" class="btn" id="btnSearch" style="min-width:160px">Search booking</button>
-        </div>
+    <div class="grid3" style="align-items:end">
+      <div style="grid-column:1 / span 2">
+        <label for="manageQuery" class="label">Reference # / Email / Phone</label>
+        <input id="manageQuery" class="input" placeholder="e.g., 1445 or name@email.com or 647..." />
       </div>
-      <div id="searchMsg" class="alert" style="display:none;margin-top:12px"></div>
+      <div>
+        <button id="btnSearchBooking" type="button" class="btn primary" style="width:100%">Search booking</button>
+      </div>
     </div>
-  
-    <div class="card" id="existingCard" style="margin-top:16px;display:none">
-      <h2 style="margin:0 0 10px">Existing Booking</h2>
-      <div id="existingLockMsg" class="alert" style="display:none;margin-bottom:12px"></div>
-      <div class="grid3">
-        <div><label>Reference #</label><input id="exRef" type="text" readonly></div>
-        <div><label>Invoice #</label><input id="exInv" type="text" readonly></div>
-        <div><label>Status</label><input id="exStatus" type="text" readonly></div>
-      </div>
-      <div class="grid3">
-        <div><label>Name</label><input id="exName" type="text" readonly></div>
-        <div><label>Email</label><input id="exEmail" type="text" readonly></div>
-        <div><label>Phone</label><input id="exPhone" type="text" readonly></div>
-      </div>
-      <div class="grid3">
-        <div><label>Fulfillment</label><input id="exFulfillment" type="text" readonly></div>
-        <div><label>Date</label><input id="exDate" type="text" readonly></div>
-        <div><label>Time / Window</label><input id="exTime" type="text" readonly></div>
-      </div>
-      <div class="grid3">
-        <div><label>Total</label><input id="exTotal" type="text" readonly></div>
-        <div><label>Paid</label><input id="exPaid" type="text" readonly></div>
-        <div><label>Balance Due</label><input id="exBalance" type="text" readonly></div>
-      </div>
-      <div class="grid2">
-        <div><label>Invoice Link</label><input id="exInvoiceLink" type="text" readonly></div>
-        <div><label>Receipt Link</label><input id="exReceiptLink" type="text" readonly></div>
-      </div>
-      <div id="paymentHistoryBox" style="margin-top:12px;display:none"></div>
+
+    <div id="manageMsg" class="notice" style="display:none;margin-top:12px"></div>
+    <div id="webappSetup" class="mini" style="margin-top:10px">
+      <details>
+        <summary style="cursor:pointer">Set Web App URL (required)</summary>
+        <div class="grid2" style="margin-top:10px; align-items:end">
+          <div>
+            <label class="label" for="webAppUrlInput">Apps Script Web App URL (/exec)</label>
+            <input id="webAppUrlInput" class="input" placeholder="https://script.google.com/macros/s/.../exec" />
+            <small class="hint">Use Apps Script → Deploy → Manage deployments → Web app URL (must end with <b>/exec</b>).</small>
+          </div>
+          <div>
+            <button id="btnSaveWebApp" type="button" class="btn" style="width:100%">Save URL</button>
+          </div>
+        </div>
+      </details>
     </div>
-  
-        <div id="editArea" class="hidden">
-          <form id="mangoForm" enctype="multipart/form-data" novalidate method="post" target="mango_hidden_iframe">
+
+  </section>
+
+  <section id="existingBookingCard" class="card" style="margin-top:18px; display:none">
+    <h2 style="margin:0 0 12px 0">Existing Booking</h2>
+    <div id="lockMsg" class="notice danger" style="display:none;margin-bottom:12px"></div>
+
+    <div class="grid3">
+      <div>
+        <label class="label">Reference #</label>
+        <input id="prev_ref" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Invoice #</label>
+        <input id="prev_invoice" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Status</label>
+        <input id="prev_status" class="input" readonly />
+      </div>
+
+      <div>
+        <label class="label">Name</label>
+        <input id="prev_name" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Email</label>
+        <input id="prev_email" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Phone</label>
+        <input id="prev_phone" class="input" readonly />
+      </div>
+
+      <div>
+        <label class="label">Fulfillment</label>
+        <input id="prev_fulfillment" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Date</label>
+        <input id="prev_date" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Time / Window</label>
+        <input id="prev_time" class="input" readonly />
+      </div>
+
+      <div>
+        <label class="label">Total</label>
+        <input id="prev_total" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Paid</label>
+        <input id="prev_paid" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Balance Due</label>
+        <input id="prev_balance" class="input" readonly />
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:10px">
+      <div>
+        <label class="label">Invoice Link</label>
+        <input id="prev_invoiceUrl" class="input" readonly />
+      </div>
+      <div>
+        <label class="label">Receipt Link</label>
+        <input id="prev_receiptUrl" class="input" readonly />
+      </div>
+    </div>
+  </section>
+  <!-- ============================================================= -->
+<form id="mangoForm" enctype="multipart/form-data" novalidate method="post" target="mango_hidden_iframe">
+    <input type="hidden" name="manageMode" value="1">
+    <input type="hidden" name="manageAction" id="manageAction" value="updateBooking">
+    <input type="hidden" name="referenceNumber" id="manage_referenceNumber" value="">
+    <input type="hidden" name="manageOrigin" id="manageOrigin" value="">
+
           <input type="hidden" name="isoDateTime" value="">
           <input type="hidden" name="requestId" value="">
           <input type="hidden" name="receipt_b64" value="">
           <input type="hidden" name="receipt_name" value="">
           <input type="hidden" name="receipt_type" value="">
-          <!-- 1) Customer Info -->
+          <div id="editArea" style="display:none;">
+<!-- 1) Customer Info -->
           <div class="section">
             <h3>1) Customer Info</h3>
             <div class="grid2">
@@ -803,16 +861,19 @@ label{
           <!-- Submit -->
           <div class="actions">
             <button type="submit" class="primary" id="submitBtn">Update Booking</button>
-        <button type="button" class="btn" id="cancelBtn" style="margin-left:12px;background:#ddd;color:#222">Cancel Booking</button>
+      <button id="cancelBtn" type="button" class="btn danger" style="margin-left:10px">Cancel Booking</button>
+
             <div id="msg" class="mini" aria-live="polite"></div>
           </div>
-        </form>
-        </div>
+        
+</div>
+<!-- end editArea -->
+</form>
       </main>
     </div>
 
     <!-- Decorative footer bar (will be hidden after successful submit) -->
-    <div class="footer-bar hidden" id="footerBar">
+    <div class="footer-bar">
       <div class="footer-inner">
         <div class="footer-left">
           <div class="footer-icon">🥭</div>
@@ -836,81 +897,15 @@ label{
       <strong>Debug:</strong> The box below shows what the Apps Script server returned after submit (useful if confirmation is not received).
     </div>
   <script>
-    const WEB_APP_URL =
-      "https://script.google.com/macros/s/AKfycbwjUI_xrqKJudIMc1Q4r0Bw2avG6Ch2dGUQrR93NKB_3MZcmbk5f4eaE3EaJWihz1940Q/exec";
+    const DEFAULT_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxCSGDfg0U9q8IQD5fc4Ucu16tuKZ42wOqvX3eb6CJqxZLVLNLjx3YtQH8hffAda8enAQ/exec';
+    const SAVED_KEY = 'MANGO_MANAGE_WEBAPP_URL';
+    let WEB_APP_URL = localStorage.getItem(SAVED_KEY) || DEFAULT_WEB_APP_URL;
 
     // Use CONFIG_URL for GET (can include ?action=...), but ALWAYS post to base /exec
     const CONFIG_URL = WEB_APP_URL;
     const POST_URL = String(WEB_APP_URL).split('?')[0];
 
-    
-    // -------- GitHub Pages (no CORS) helpers --------
-    function jsonpGet(action, params){
-      return new Promise((resolve, reject)=>{
-        const cb = '__jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*1e6);
-        const u = new URL(CONFIG_URL);
-        u.searchParams.set('action', action);
-        u.searchParams.set('cb', cb);
-        Object.keys(params||{}).forEach(k=> u.searchParams.set(k, params[k]));
-        // cache-bust
-        u.searchParams.set('_ts', String(Date.now()));
-
-        window[cb] = (data) => {
-          try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
-          if (script && script.parentNode) script.parentNode.removeChild(script);
-          resolve(data);
-        };
-
-        const script = document.createElement('script');
-        script.src = u.toString();
-        script.async = true;
-        script.onerror = () => {
-          try{ delete window[cb]; }catch(e){ window[cb]=undefined; }
-          if (script && script.parentNode) script.parentNode.removeChild(script);
-          reject(new Error('Failed to load from server. Please confirm your Web App URL is correct and deployed as /exec.'));
-        };
-        document.head.appendChild(script);
-      });
-    }
-
-    async function apiGet(action, params){
-      return jsonpGet(action, params);
-    }
-
-    // POST via hidden iframe + postMessage (avoids CORS)
-    function apiPostManage(manageAction, payload){
-      return new Promise((resolve, reject)=>{
-        const form = document.getElementById('manage_hidden_form');
-        const iframe = document.getElementById('manage_hidden_iframe');
-        if (!form || !iframe) return reject(new Error('Internal error: missing hidden form/iframe'));
-
-        const handler = (ev) => {
-          let data = ev.data;
-          if (typeof data === 'string') { try{ data = JSON.parse(data); }catch(_e){} }
-          if (!data || typeof data !== 'object' || !('ok' in data)) return;
-          window.removeEventListener('message', handler);
-          if (data.ok) resolve(data);
-          else reject(new Error(data.error || 'Server error'));
-        };
-        window.addEventListener('message', handler);
-
-        // populate hidden fields
-        form.action = POST_URL; // must be base /exec
-        form.querySelector('input[name="manageAction"]').value = manageAction;
-        form.querySelector('input[name="payload"]').value = JSON.stringify(payload || {});
-        form.querySelector('input[name="referenceNumber"]').value = (payload && (payload.referenceNumber||payload.ref)) ? (payload.referenceNumber||payload.ref) : '';
-        form.querySelector('input[name="searchKey"]').value = (payload && (payload.searchKey||payload.q||payload.token)) ? (payload.searchKey||payload.q||payload.token) : '';
-
-        form.submit();
-
-        setTimeout(()=>{
-          window.removeEventListener('message', handler);
-          reject(new Error('No response from server. Please confirm your Apps Script web app is deployed as /exec and access is set to Anyone.'));
-        }, 30000);
-      });
-    }
-    // -----------------------------------------------
-let PRICES = {
+    let PRICES = {
       "Alphonso (Apoos)":50,
       "Kesar":40,
       "Badami":35,
@@ -934,7 +929,7 @@ let PRICES = {
       try{
         const u = new URL(CONFIG_URL);
         u.searchParams.set('action','getConfig');
-        const data = await apiGet('getConfig', {});
+        const data = await jsonp(u.toString());
         if (!data || !data.ok) return;
 
         // Varieties/prices
@@ -1627,386 +1622,50 @@ function buildDeliveryWindowSelect(){
       recalcTotals();
     })();
 
-    
-// ---------------- Manage Booking (search, update, cancel) ----------------
-let LOADED_BOOKING = null;
-let SEARCH_KEY = '';
+    f.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const err = requireBasics();
+      if (err){ show('err', err); return; }
 
-const searchInput = document.getElementById('searchQuery');
-const btnSearch   = document.getElementById('btnSearch');
-const searchMsg   = document.getElementById('searchMsg');
-const existingCard = document.getElementById('existingCard');
-const existingLockMsg = document.getElementById('existingLockMsg');
-const cancelBtn   = document.getElementById('cancelBtn');
-const msgMini     = document.getElementById('msg');
+      // Always set ISO datetime (used by Apps Script calendar + file naming)
+      f.querySelector('input[name="isoDateTime"]').value = toLocalISO(f.date.value, f.time.value);
 
-const editArea    = document.getElementById('editArea');
-const footerBar   = document.getElementById('footerBar');
+      // Client requestId for confirmation polling
+      const requestId = makeRequestId();
+      f.querySelector('input[name="requestId"]').value = requestId;
 
-function setBox(el, text, type){
-  if (!el) return;
-  el.style.display = text ? 'block' : 'none';
-  el.className = type ? type : '';
-  el.textContent = text || '';
-}
+      
+      currentRequestId = requestId;
+// Clear any previous receipt base64 values
+      f.querySelector('input[name="receipt_b64"]').value = '';
+      f.querySelector('input[name="receipt_name"]').value = '';
+      f.querySelector('input[name="receipt_type"]').value = '';
 
-function setMini(text, type){
-  if (!msgMini) return;
-  msgMini.className = type ? type : 'mini';
-  msgMini.textContent = text || '';
-}
-
-function fmtMoney(n){ return '$' + Number(n||0).toFixed(2); }
-
-function applyExistingOption(selectEl, value, label){
-  if (!selectEl) return;
-  const v = String(value||'');
-  if (!v) return;
-  const opts = Array.from(selectEl.options || []);
-  const found = opts.find(o => String(o.value) === v);
-  if (!found){
-    const o = document.createElement('option');
-    o.value = v;
-    o.textContent = label || ('Existing: ' + v);
-    selectEl.insertBefore(o, selectEl.firstChild);
-  }
-  selectEl.value = v;
-  selectEl.dispatchEvent(new Event('change', { bubbles:true }));
-}
-
-function normalizeWindow(s){
-  return String(s||'').replace(/[–—]/g,'-').replace(/\s+/g,' ').trim();
-}
-
-function setExistingSummary(b){
-  existingCard.style.display = 'block';
-  document.getElementById('exRef').value = b.referenceNumber || '';
-  document.getElementById('exInv').value = b.invoiceNumber || '';
-  document.getElementById('exStatus').value = b.status || '';
-  document.getElementById('exName').value = b.name || '';
-  document.getElementById('exEmail').value = b.email || '';
-  document.getElementById('exPhone').value = b.phone || '';
-  document.getElementById('exFulfillment').value = b.fulfillment || '';
-  document.getElementById('exDate').value = b.dateYMD || '';
-  document.getElementById('exTime').value = (b.fulfillment === 'Delivery' ? (b.deliveryWindow || '') : (b.time || ''));
-  document.getElementById('exTotal').value = fmtMoney(b.total);
-  document.getElementById('exPaid').value = fmtMoney(b.paid);
-  document.getElementById('exBalance').value = fmtMoney(b.balanceDue);
-  document.getElementById('exInvoiceLink').value = b.invoiceUrl || '';
-  document.getElementById('exReceiptLink').value = b.receiptUrl || '';
-
-  // Payment history
-  const ph = Array.isArray(b.paymentHistory) ? b.paymentHistory : [];
-  const box = document.getElementById('paymentHistoryBox');
-  if (box){
-    if (ph.length){
-      box.style.display = 'block';
-      const rows = ph.map((p,i)=>(
-        `<tr>
-          <td style="padding:6px 0">${i+1}</td>
-          <td style="padding:6px 0">${(p.date||'')}${p.time?(' '+p.time):''}</td>
-          <td style="padding:6px 0">${p.etransferId||''}</td>
-          <td style="padding:6px 0;text-align:right">${fmtMoney(p.amount||0)}</td>
-        </tr>`
-      )).join('');
-      box.innerHTML = `
-        <div style="font-weight:700;margin-bottom:6px">Previous payments</div>
-        <table style="width:100%;border-collapse:collapse">
-          <thead>
-            <tr>
-              <th style="text-align:left;border-bottom:1px solid #eee;padding:6px 0">#</th>
-              <th style="text-align:left;border-bottom:1px solid #eee;padding:6px 0">Date</th>
-              <th style="text-align:left;border-bottom:1px solid #eee;padding:6px 0">e-Transfer</th>
-              <th style="text-align:right;border-bottom:1px solid #eee;padding:6px 0">Amount</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>`;
-    } else {
-      box.style.display = 'none';
-      box.innerHTML = '';
-    }
-  }
-}
-
-function setFormFromBooking(b){
-  // Customer
-  f.customerName.value = b.name || '';
-  f.customerEmail.value = b.email || '';
-  f.customerPhone.value = b.phone || '';
-
-  // Fulfillment
-  const fulfill = (b.fulfillment === 'Delivery') ? 'Delivery' : 'Pickup';
-  document.querySelectorAll('input[name="fulfillment"]').forEach(r => { r.checked = (r.value === fulfill); });
-  modeLabels();
-  populateAllowedDates();
-  enforceTimeWindows();
-
-  // Date
-  applyExistingOption(document.getElementById('dateSelect'), b.dateYMD, 'Existing: ' + b.dateYMD);
-
-  // Time / Window
-  if (fulfill === 'Delivery'){
-    // ensure window exists (normalize dash)
-    const sel = document.getElementById('deliveryWindow');
-    const desired = normalizeWindow(b.deliveryWindow || '');
-    const opts = Array.from(sel.options||[]);
-    const found = opts.find(o => normalizeWindow(o.value) === desired || normalizeWindow(o.textContent) === desired);
-    if (!found && desired){
-      const o = document.createElement('option');
-      o.value = b.deliveryWindow;
-      o.textContent = 'Existing: ' + b.deliveryWindow;
-      sel.insertBefore(o, sel.firstChild);
-    }
-    sel.value = found ? found.value : (b.deliveryWindow || '');
-    sel.dispatchEvent(new Event('change', { bubbles:true }));
-  } else {
-    applyExistingOption(document.getElementById('timeSelect'), b.time, 'Existing: ' + b.time);
-  }
-
-  // Address
-  if (b.fulfillment === 'Delivery'){
-    f.deliveryStreet.value = b.deliveryStreet || '';
-    f.deliveryUnit.value = b.deliveryUnit || '';
-    f.deliveryCity.value = b.deliveryCity || '';
-    f.deliveryPostal.value = b.deliveryPostal || '';
-    f.deliveryBuzzer.value = b.deliveryBuzzer || '';
-  }
-
-  // Line items
-  try{
-    const items = Array.isArray(b._rawFields?.['itemVariety[]']) ? b._rawFields['itemVariety[]'].map((v,i)=>({ variety:v, qty: Number((b._rawFields['itemQty[]']||[])[i]||0) })) : [];
-    // Clear current rows then add
-    const tbody = document.querySelector('#itemsBody');
-    if (tbody){
-      tbody.innerHTML = '';
-      (items.length ? items : [{variety:'',qty:1}]).forEach(it=>{
-        addRow(it.variety, it.qty);
-      });
-    }
-  }catch(e){}
-
-  // Advance payment
-  const adv = (b.advancePayment === 'Yes') ? 'Yes' : 'No';
-  document.querySelectorAll('input[name="advancePayment"]').forEach(r => { r.checked = (r.value === adv); });
-  toggleAdvanceDetails();
-
-  // Do not force new payment; leave blank
-  f.amountPayingNow.value = '';
-  f.etransferId.value = '';
-  f.paymentDate.value = '';
-  f.paymentTime.value = '';
-  if (f.receipt) f.receipt.value = '';
-
-  recalcTotals();
-}
-
-function toggleAllInputs(disabled){
-  // Keep search box usable always
-  document.querySelectorAll('input, select, textarea, button').forEach(el=>{
-    if (el.id === 'searchQuery' || el.id === 'btnSearch') return;
-    if (el.closest('#manageCard')) return;
-    if (el === searchInput || el === btnSearch) return;
-    if (el.id === 'cancelBtn' || el.id === 'submitBtn') {
-      el.disabled = disabled;
-      return;
-    }
-    if (el.id === 'searchQuery') return;
-    // keep existing summary inputs read-only but not disabled
-    if (el.closest('#existingCard')) return;
-    el.disabled = disabled;
-  });
-  cancelBtn.disabled = disabled;
-  document.getElementById('submitBtn').disabled = disabled;
-}
-
-
-async function apiPost(action, payload){
-  // Manage actions only (updateBooking/cancelBooking)
-  return apiPostManage(action, payload);
-}
-
-function readFileAsB64(file){
-  return new Promise((resolve, reject)=>{
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(new Error('File read failed'));
-    reader.readAsDataURL(file);
-  });
-}
-
-async function buildUpdatePayload(){
-  const fulfill = document.querySelector('input[name="fulfillment"]:checked')?.value || 'Pickup';
-  const adv = document.querySelector('input[name="advancePayment"]:checked')?.value || 'No';
-
-  const itemVariety = Array.from(document.querySelectorAll('select[name="itemVariety[]"]')).map(el=>el.value);
-  const itemQty = Array.from(document.querySelectorAll('input[name="itemQty[]"]')).map(el=>el.value);
-
-  const payload = {
-    referenceNumber: LOADED_BOOKING.referenceNumber,
-    searchKey: SEARCH_KEY,
-    fulfillment: fulfill,
-    date: document.getElementById('dateSelect')?.value || '',
-    time: document.getElementById('timeSelect')?.value || '',
-    deliveryWindow: document.getElementById('deliveryWindow')?.value || '',
-    advancePayment: adv,
-    notes: f.notes?.value || '',
-    deliveryStreet: f.deliveryStreet?.value || '',
-    deliveryUnit: f.deliveryUnit?.value || '',
-    deliveryCity: f.deliveryCity?.value || '',
-    deliveryPostal: f.deliveryPostal?.value || '',
-    deliveryBuzzer: f.deliveryBuzzer?.value || '',
-    'itemVariety[]': itemVariety,
-    'itemQty[]': itemQty
-  };
-
-  // New payment (optional, only when advance payment selected)
-  if (adv === 'Yes'){
-    payload.amountPayingNow = f.amountPayingNow?.value || '';
-    payload.etransferId = f.etransferId?.value || '';
-    payload.paymentDate = f.paymentDate?.value || '';
-    payload.paymentTime = f.paymentTime?.value || '';
-    const file = f.receipt?.files?.[0];
-    if (file){
-      const dataUrl = await readFileAsB64(file);
-      payload.receipt_b64 = String(dataUrl).split(',')[1] || '';
-      payload.receipt_type = file.type || 'application/octet-stream';
-      payload.receipt_name = file.name || 'receipt';
-    }
-  }
-  return payload;
-}
-
-btnSearch.addEventListener('click', async ()=>{
-  const q = String(searchInput.value||'').trim();
-  setBox(searchMsg, '', '');
-  setMini('', 'mini');
-  existingCard.style.display = 'none';
-  if (editArea) editArea.classList.add('hidden');
-  if (footerBar) footerBar.classList.add('hidden');
-  setBox(existingLockMsg, '', '');
-  LOADED_BOOKING = null;
-  SEARCH_KEY = '';
-  toggleAllInputs(true);
-
-  if (!q){
-    setBox(searchMsg, 'Please enter Reference # or Email or Phone.', 'error');
-    return;
-  }
-
-  try{
-    btnSearch.disabled = true;
-    setBox(searchMsg, 'Searching...', 'success');
-    const data = await apiGet('searchBooking', { q });
-    if (!data || !data.ok){
-      setBox(searchMsg, (data && data.error) ? data.error : 'Booking not found.', 'error');
-      btnSearch.disabled = false;
-      return;
-    }
-    LOADED_BOOKING = data.booking;
-    SEARCH_KEY = q;
-
-    setExistingSummary(LOADED_BOOKING);
-    setFormFromBooking(LOADED_BOOKING);
-
-    if (data.lock && data.lock.canEdit === false){
-      setBox(existingLockMsg, data.lock.message || 'Sorry, order cannot be changed. We require minimum of 2 days advance notice to update the order.', 'error');
-      toggleAllInputs(true);
-      if (editArea) editArea.classList.add('hidden');
-      if (footerBar) footerBar.classList.add('hidden');
-    } else {
-      setBox(existingLockMsg, '', '');
-      toggleAllInputs(false);
-      if (editArea) editArea.classList.remove('hidden');
-      if (footerBar) footerBar.classList.remove('hidden');
-    }
-
-    if (data.lock && data.lock.canEdit === false){
-      // keep the lock message only (no extra banner)
-      setBox(searchMsg, '', '');
-    } else {
-      setBox(searchMsg, 'Booking loaded. You can update details below.', 'success');
-    }
-  } catch(e){
-    setBox(searchMsg, (e && e.message) ? e.message : 'Server error while searching. Please confirm your Web App URL is correct and deployed as /exec.', 'error');
-  } finally {
-    btnSearch.disabled = false;
-  }
-});
-
-// Prevent booking creation
-f.addEventListener('submit', (e)=>{ e.preventDefault(); });
-
-document.getElementById('submitBtn').addEventListener('click', async ()=>{
-  setMini('', 'mini');
-  if (!LOADED_BOOKING){
-    setMini('Please search and load a booking first.', 'error');
-    return;
-  }
-  try{
-    document.getElementById('submitBtn').disabled = true;
-    cancelBtn.disabled = true;
-    setMini('Updating booking...', 'success');
-
-    const payload = await buildUpdatePayload();
-    const data = await apiPost('updateBooking', payload);
-
-    if (data && data.locked){
-      setMini(data.message || 'Sorry, order cannot be changed (need 2 days notice).', 'error');
-      return;
-    }
-
-    if (!data || !data.ok){
-      setMini((data && data.error) ? data.error : 'Update failed.', 'error');
-      return;
-    }
-
-    setMini('Thank you for your business. Your booking has been updated successfully.', 'success');
-
-    // Refresh display (re-search)
-    btnSearch.click();
-  } catch(e){
-    setMini('Update failed. Please try again.', 'error');
-  } finally {
-    document.getElementById('submitBtn').disabled = false;
-    cancelBtn.disabled = false;
-  }
-});
-
-cancelBtn.addEventListener('click', async ()=>{
-  setMini('', 'mini');
-  if (!LOADED_BOOKING){
-    setMini('Please search and load a booking first.', 'error');
-    return;
-  }
-  if (!confirm('Are you sure you want to cancel this booking?')) return;
-
-  try{
-    document.getElementById('submitBtn').disabled = true;
-    cancelBtn.disabled = true;
-    setMini('Cancelling booking...', 'success');
-
-    const data = await apiPost('cancelBooking', { referenceNumber: LOADED_BOOKING.referenceNumber, searchKey: SEARCH_KEY });
-
-    if (data && data.locked){
-      setMini(data.message || 'Sorry, order cannot be cancelled (need 2 days notice).', 'error');
-      return;
-    }
-    if (!data || !data.ok){
-      setMini((data && data.error) ? data.error : 'Cancel failed.', 'error');
-      return;
-    }
-
-    setMini('Thank you for your business. Your booking has been cancelled successfully.', 'success');
-    // Refresh summary
-    btnSearch.click();
-  } catch(e){
-    setMini('Cancel failed. Please try again.', 'error');
-  } finally {
-    document.getElementById('submitBtn').disabled = false;
-    cancelBtn.disabled = false;
-  }
-});
+      const fileInput = f.receipt;
+      if (fileInput && fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        // Keep the normal file upload AND provide a base64 fallback for reliability
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataURL = String(reader.result || '');
+          const parts = dataURL.split(',');
+          if (parts.length === 2){
+            const head = parts[0];
+            const b64 = parts[1];
+            const mimePart = head.split(':')[1] || '';
+            const mime = mimePart.split(';')[0] || 'application/octet-stream';
+            f.querySelector('input[name="receipt_b64"]').value = b64;
+            f.querySelector('input[name="receipt_name"]').value = file.name;
+            f.querySelector('input[name="receipt_type"]').value = mime;
+          }
+          submitViaIframe();
+        };
+        reader.onerror = () => submitViaIframe();
+        reader.readAsDataURL(file);
+      } else {
+        submitViaIframe();
+      }
+    });
 
     
     let submitTimeout = null;
@@ -2056,10 +1715,21 @@ function stopPoll(){
           // Fallback: show Thank You anyway (backend already processed in most cases)
           const footer = document.querySelector('.footer-bar');
           if (footer) footer.style.display = 'none';
+          const action = String((data && (data.manageAction || data.action || data.mode)) || '');
+          let title = 'Thank you for your order! 🥭';
+          let msg = "We received your booking. If you don't see the confirmation email, please check your spam folder or contact us.";
+          if (action === 'updateBooking') {
+            title = 'Booking Updated ✅';
+            msg = 'Your booking has been updated. Please check your email for the updated invoice.';
+          } else if (action === 'cancelBooking') {
+            title = 'Booking Cancelled ✅';
+            msg = 'Your booking has been cancelled. Please check your email for the confirmation.';
+          }
+
           card.innerHTML =
             '<div class="thankyou-box">' +
-              '<h2>Thank you for your order! 🥭</h2>' +
-              '<p>We received your booking. If you don\'t see the confirmation email, please check your spam folder or contact us.</p>' +
+              '<h2>' + title + '</h2>' +
+              '<p>' + msg + '</p>' +
               '<img src="images/mango-kids-juice.png" alt="Kids happily enjoying mango juice" class="thankyou-img">' +
             '</div>';
           return;
@@ -2225,14 +1895,308 @@ window.addEventListener('message', (ev) => {
        1) Replace YOUR_GOOGLE_MAPS_API_KEY below
        2) Make sure "Places API" is enabled for the key
   -->
-  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQcPWPhpc_Dlr-d1RWnyOU7Srft-zPZ2o&libraries=places&callback=initAddressAutocomplete"></script>
+  <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDQcPWPhpc_Dlr-d1RWnyOU7Srft-zPZ2o&libraries=places&callback=initAddressAutocomplete">
+    // =================== MANAGE BOOKING (GitHub-safe: JSONP for GET, iframe for POST) ===================
+    const PAGE_ORIGIN = window.location.origin;
+    const elMsg = document.getElementById('manageMsg');
+    const elLock = document.getElementById('lockMsg');
+    const existingCard = document.getElementById('existingBookingCard');
+    const editArea = document.getElementById('editArea');
+    const queryEl = document.getElementById('manageQuery');
+    const btnSearch = document.getElementById('btnSearchBooking');
+    const cancelBtn = document.getElementById('cancelBtn');
+    const form = document.getElementById('mangoForm');
+    const manageOriginEl = document.getElementById('manageOrigin');
+    const manageRefEl = document.getElementById('manage_referenceNumber');
+    const manageActionEl = document.getElementById('manageAction');
 
-  <iframe id="manage_hidden_iframe" name="manage_hidden_iframe" class="hidden" title="hidden manage frame"></iframe>
-  <form id="manage_hidden_form" class="hidden" target="manage_hidden_iframe" method="POST" action="">
-    <input type="hidden" name="manageAction" value="">
-    <input type="hidden" name="payload" value="">
-    <input type="hidden" name="referenceNumber" value="">
-    <input type="hidden" name="searchKey" value="">
-  </form>
+    if (manageOriginEl) manageOriginEl.value = PAGE_ORIGIN;
+    const webAppUrlInput = document.getElementById('webAppUrlInput');
+    const btnSaveWebApp = document.getElementById('btnSaveWebApp');
+
+    function normalizeExecUrl(url){
+      url = String(url || '').trim();
+      if (!url) return '';
+      // Remove trailing slashes
+      url = url.replace(/\/+$/,'');
+      return url;
+    }
+
+    function isBadEchoUrl(url){
+      return /script\.googleusercontent\.com\/macros\/echo/i.test(url) || /\/macros\/echo\?/i.test(url);
+    }
+
+    function looksLikeExec(url){
+      return /^https:\/\/script\.google\.com\/macros\/s\//i.test(url) && /\/exec$/i.test(url);
+    }
+
+    function ensureWebAppUrl(){
+      WEB_APP_URL = normalizeExecUrl(WEB_APP_URL);
+      if (webAppUrlInput) webAppUrlInput.value = (WEB_APP_URL === DEFAULT_WEB_APP_URL ? '' : WEB_APP_URL);
+      if (!WEB_APP_URL || WEB_APP_URL === DEFAULT_WEB_APP_URL){
+        showMsg('Set your Apps Script Web App URL first (the /exec URL).', 'danger');
+        return false;
+      }
+      if (isBadEchoUrl(WEB_APP_URL)){
+        showMsg('Do not use script.googleusercontent.com/macros/echo links. Use the Apps Script Web App URL that ends with /exec.', 'danger');
+        return false;
+      }
+      if (!looksLikeExec(WEB_APP_URL)){
+        showMsg('Web App URL looks incorrect. It must look like https://script.google.com/macros/s/XXXX/exec', 'danger');
+        return false;
+      }
+      return true;
+    }
+
+    // Save URL button
+    btnSaveWebApp && btnSaveWebApp.addEventListener('click', () => {
+      const val = normalizeExecUrl(webAppUrlInput ? webAppUrlInput.value : '');
+      if (!val){
+        showMsg('Paste your /exec Web App URL, then click Save URL.', 'danger');
+        return;
+      }
+      if (isBadEchoUrl(val)){
+        showMsg('That looks like an echo URL. Please paste the /exec Web App URL from Apps Script deployments.', 'danger');
+        return;
+      }
+      if (!looksLikeExec(val)){
+        showMsg('URL must end with /exec. Copy it from Apps Script → Deploy → Manage deployments.', 'danger');
+        return;
+      }
+      localStorage.setItem(SAVED_KEY, val);
+      WEB_APP_URL = val;
+      showMsg('Web App URL saved. Now click "Search booking".', 'success');
+    });
+
+    // Validate once on load (does not block)
+    try{ ensureWebAppUrl(); }catch(e){}
+
+
+    function showMsg(text, type){
+      if (!text){ elMsg.style.display='none'; elMsg.textContent=''; elMsg.className='notice'; return; }
+      elMsg.style.display='block';
+      elMsg.textContent = text;
+      elMsg.className = 'notice' + (type ? (' ' + type) : '');
+    }
+    function showLock(text){
+      if (!text){ elLock.style.display='none'; elLock.textContent=''; return; }
+      elLock.style.display='block';
+      elLock.textContent = text;
+    }
+
+    function jsonp(url){
+      return new Promise((resolve, reject) => {
+        const cbName = '__mangoManageCb_' + Math.random().toString(36).slice(2);
+        const s = document.createElement('script');
+        const cleanup = () => {
+          try{ delete window[cbName]; }catch(e){}
+          if (s && s.parentNode) s.parentNode.removeChild(s);
+        };
+        const t = setTimeout(() => { cleanup(); reject(new Error('timeout')); }, 15000);
+        window[cbName] = (data) => { clearTimeout(t); cleanup(); resolve(data); };
+        s.onerror = () => { clearTimeout(t); cleanup(); reject(new Error('load_failed')); };
+
+        const u = new URL(url);
+        // Some browsers enforce strict MIME type checking. Your Apps Script must return JavaScript for JSONP.
+        u.searchParams.set('cb', cbName);
+        s.src = u.toString();
+        document.head.appendChild(s);
+      });
+    }
+
+    function setPreview(booking){
+      existingCard.style.display = 'block';
+      const v = (x)=> (x===undefined||x===null) ? '' : String(x);
+      document.getElementById('prev_ref').value = v(booking.referenceNumber || booking.ref);
+      document.getElementById('prev_invoice').value = v(booking.invoiceNumber || booking.invoice);
+      document.getElementById('prev_status').value = v(booking.status || 'Pending');
+      document.getElementById('prev_name').value = v(booking.name);
+      document.getElementById('prev_email').value = v(booking.email);
+      document.getElementById('prev_phone').value = v(booking.phone);
+      document.getElementById('prev_fulfillment').value = v(booking.fulfillment);
+      document.getElementById('prev_date').value = v(booking.date);
+      document.getElementById('prev_time').value = v(booking.deliveryWindow || booking.time || '');
+      document.getElementById('prev_total').value = (booking.total != null && booking.total !== '') ? ('$' + Number(booking.total).toFixed(2)) : '';
+      document.getElementById('prev_paid').value = (booking.paid != null && booking.paid !== '') ? ('$' + Number(booking.paid).toFixed(2)) : '';
+      document.getElementById('prev_balance').value = (booking.balanceDue != null && booking.balanceDue !== '') ? ('$' + Number(booking.balanceDue).toFixed(2)) : '';
+      document.getElementById('prev_invoiceUrl').value = v(booking.invoiceUrl || '');
+      document.getElementById('prev_receiptUrl').value = v(booking.receiptUrl || '');
+
+      // Set hidden reference for updates/cancel
+      const ref = v(booking.referenceNumber || booking.ref);
+      if (manageRefEl) manageRefEl.value = ref;
+    }
+
+    function applyEditLock(lock){
+      const canEdit = !!(lock && lock.canEdit);
+      if (!canEdit){
+        editArea.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        showLock(lock && lock.message ? lock.message : 'Sorry, order cannot be changed. We require minimum of 2 days advance notice to update the order.');
+      } else {
+        showLock('');
+        editArea.style.display = 'block';
+        if (cancelBtn) cancelBtn.style.display = 'inline-block';
+      }
+    }
+
+    function prefillFormFromBooking(booking){
+      // Prefill only common fields so user can change only what they want.
+      // (If your API returns items arrays, we also rebuild variety rows.)
+      try{
+        // Customer
+        const nameEl = form.querySelector('input[name="name"]'); if (nameEl) nameEl.value = booking.name || '';
+        const emailEl = form.querySelector('input[name="email"]'); if (emailEl) emailEl.value = booking.email || '';
+        const phoneEl = form.querySelector('input[name="phone"]'); if (phoneEl) phoneEl.value = booking.phone || '';
+        const notesEl = form.querySelector('input[name="notes"], textarea[name="notes"]'); if (notesEl) notesEl.value = booking.notes || '';
+
+        // Fulfillment
+        const fulfill = (booking.fulfillment || '').toLowerCase();
+        const radios = form.querySelectorAll('input[name="fulfillment"]');
+        radios.forEach(r => { r.checked = (fulfill === 'delivery' ? r.value==='Delivery' : r.value==='Pickup'); });
+
+        // Date / time
+        const dateSel = document.getElementById('dateSelect');
+        const timeSel = document.getElementById('timeSelect');
+        const winSel = document.getElementById('deliveryWindow');
+
+        const dateVal = booking.date || '';
+        if (dateSel && dateVal) { dateSel.value = dateVal; dateSel.dispatchEvent(new Event('change')); }
+        const timeVal = booking.time || '';
+        if (timeSel && timeVal) { timeSel.value = timeVal; timeSel.dispatchEvent(new Event('change')); }
+        const winVal = booking.deliveryWindow || '';
+        if (winSel && winVal) { winSel.value = winVal; winSel.dispatchEvent(new Event('change')); }
+
+        // Address
+        const sEl = form.querySelector('input[name="deliveryStreet"]'); if (sEl) sEl.value = booking.deliveryStreet || '';
+        const uEl = form.querySelector('input[name="deliveryUnit"]'); if (uEl) uEl.value = booking.deliveryUnit || '';
+        const cEl = form.querySelector('input[name="deliveryCity"]'); if (cEl) cEl.value = booking.deliveryCity || '';
+        const pEl = form.querySelector('input[name="deliveryPostal"]'); if (pEl) pEl.value = booking.deliveryPostal || '';
+        const bEl = form.querySelector('input[name="deliveryBuzzer"]'); if (bEl) bEl.value = booking.deliveryBuzzer || '';
+
+        // Advance payment
+        const adv = String(booking.advancePayment || '').toLowerCase();
+        const advRadios = form.querySelectorAll('input[name="advancePayment"]');
+        if (advRadios && advRadios.length){
+          advRadios.forEach(r => {
+            if (adv === 'yes') r.checked = (r.value === 'Yes');
+            else if (adv === 'no') r.checked = (r.value !== 'Yes');
+          });
+          advRadios.forEach(r => r.dispatchEvent(new Event('change')));
+        }
+
+        // Items arrays (if provided)
+        const itemsBody = document.getElementById('itemsBody');
+        const addRowBtn = document.getElementById('addRowBtn');
+        if (itemsBody){
+          const vArr = (booking.rawFields && booking.rawFields['itemVariety[]']) ? booking.rawFields['itemVariety[]'] :
+                       (booking.itemVariety || booking.itemVarieties || []);
+          const qArr = (booking.rawFields && booking.rawFields['itemQty[]']) ? booking.rawFields['itemQty[]'] :
+                       (booking.itemQty || booking.itemQtys || []);
+          if (Array.isArray(vArr) && Array.isArray(qArr) && vArr.length){
+            // Clear existing rows
+            itemsBody.innerHTML = '';
+            // Use existing addRow() function if available
+            if (typeof addRow === 'function'){
+              for (let i=0; i<vArr.length; i++){
+                addRow();
+                const row = itemsBody.querySelectorAll('tr')[i];
+                if (!row) continue;
+                const sel = row.querySelector('select');
+                const qty = row.querySelector('input[type="number"], input');
+                if (sel) sel.value = String(vArr[i] || '');
+                if (qty) qty.value = String(qArr[i] || '1');
+                sel && sel.dispatchEvent(new Event('change'));
+                qty && qty.dispatchEvent(new Event('input'));
+              }
+            }
+          }
+        }
+      }catch(e){
+        console.warn('Prefill failed', e);
+      }
+    }
+
+    async function searchBooking(){
+      showMsg('');
+      showLock('');
+      editArea.style.display = 'none';
+      if (cancelBtn) cancelBtn.style.display = 'none';
+
+      const q = String(queryEl.value || '').trim();
+      if (!ensureWebAppUrl()) return;
+      if (!q){
+        showMsg('Enter Reference #, Email, or Phone to search.', 'danger');
+        return;
+      }
+
+      btnSearch.disabled = true;
+      btnSearch.textContent = 'Searching...';
+
+      try{
+        // IMPORTANT: WEB_APP_URL must be your Apps Script /exec URL.
+        const u = new URL(WEB_APP_URL);
+        u.searchParams.set('action','searchBooking');
+        u.searchParams.set('q', q);
+
+        const data = await jsonp(u.toString());
+
+        if (!data || !data.ok){
+          existingCard.style.display = 'none';
+          showMsg((data && data.error) ? data.error : 'Booking not found.', 'danger');
+          return;
+        }
+
+        const booking = data.booking || {};
+        setPreview(booking);
+        const lock = data.lock || booking.lock || null;
+        applyEditLock(lock);
+
+        if (lock && lock.canEdit){
+          // Prefill fields so user can change only what they want.
+          prefillFormFromBooking(booking);
+        }
+
+        showMsg(lock && !lock.canEdit ? 'Booking loaded (read-only).' : 'Booking loaded. Update any field below, then click Update Booking.', 'success');
+      } catch(err){
+        existingCard.style.display = 'none';
+        showMsg(
+          'Failed to load from server. Confirm the Web App URL is the /exec deployment and that it supports JSONP (cb=...).',
+          'danger'
+        );
+        console.error(err);
+      } finally {
+        btnSearch.disabled = false;
+        btnSearch.textContent = 'Search booking';
+      }
+    }
+
+    queryEl && queryEl.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); searchBooking(); }});
+
+    btnSearch && btnSearch.addEventListener('click', searchBooking);
+
+    // Cancel flow: POST through the existing hidden iframe (no CORS).
+    cancelBtn && cancelBtn.addEventListener('click', () => {
+      if (!manageRefEl || !manageRefEl.value){
+        alert('Search a booking first.');
+        return;
+      }
+      if (!confirm('Cancel this booking?')) return;
+      if (manageActionEl) manageActionEl.value = 'cancelBooking';
+      form && form.requestSubmit();
+    });
+
+    // Ensure manageAction is updateBooking when user updates
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn && submitBtn.addEventListener('click', () => {
+      if (manageActionEl) manageActionEl.value = 'updateBooking';
+    });
+
+    // Hide edit area on page load
+    editArea.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    // ====================================================================================================
+
+</script>
 </body>
 </html>
